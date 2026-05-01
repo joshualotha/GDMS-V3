@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         User::create([
             'name' => 'Admin',
+            'username' => 'admin',
             'email' => 'admin@gdms.com',
             'password' => 'password',
         ]);

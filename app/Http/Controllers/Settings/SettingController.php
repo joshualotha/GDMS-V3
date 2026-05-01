@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class SettingController extends Controller
 {
@@ -17,7 +20,9 @@ class SettingController extends Controller
             'financial_year_start' => Setting::get('financial_year_start', '01'),
         ];
 
-        return view('settings.general.index', compact('settings'));
+        $admin = User::first();
+
+        return view('settings.general.index', compact('settings', 'admin'));
     }
 
     public function update(Request $request)
@@ -34,5 +39,29 @@ class SettingController extends Controller
         }
 
         return back()->with('success', 'Settings updated successfully.');
+    }
+
+    public function updateAccount(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+        ]);
+
+        $user = Auth::user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $request->validate([
+                'current_password' => 'required|string|current_password',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Account updated successfully.');
     }
 }

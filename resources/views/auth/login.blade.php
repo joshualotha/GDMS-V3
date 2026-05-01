@@ -7,16 +7,16 @@
     @csrf
 
     <div class="form-group">
-        <label for="email" class="form-label">Email Address</label>
-        <input 
-            type="email" 
-            name="email" 
-            id="email" 
-            value="{{ old('email') }}" 
+        <label for="username" class="form-label">Username</label>
+        <input
+            type="text"
+            name="username"
+            id="username"
+            value="{{ old('username') }}"
             required
             class="form-input"
-            placeholder="Enter your email address"
-            autocomplete="email"
+            placeholder="Enter your username"
+            autocomplete="username"
         >
     </div>
 
@@ -31,6 +31,12 @@
             placeholder="Enter your password"
             autocomplete="current-password"
         >
+    </div>
+
+    <div style="text-align: right; margin-top: -16px; margin-bottom: 24px;">
+        <a href="{{ route('password.request') }}" style="color: #3b82f6; font-size: 13px; text-decoration: none; font-weight: 500;">
+            Forgot Password?
+        </a>
     </div>
 
     <button type="submit" class="btn-submit">

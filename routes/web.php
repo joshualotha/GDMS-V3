@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Asset\AssetController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -41,6 +42,11 @@ Route::get('/login', [LoginController::class, 'showForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
+
 Route::get('/api/outlet/{outlet}/stock', [SaleController::class, 'getOutletStock']);
 
 Route::middleware('auth')->group(function () {
@@ -70,6 +76,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings/general', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings/general', [SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/general/account', [SettingController::class, 'updateAccount'])->name('settings.update-account');
 
     Route::get('/settings/asset-categories', [AssetCategoryController::class, 'index'])->name('asset-categories.index');
     Route::get('/settings/asset-categories/create', [AssetCategoryController::class, 'create'])->name('asset-categories.create');
