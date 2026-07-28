@@ -7,7 +7,7 @@
 @section('breadcrumb', 'Operations > Sales > New Sale')
 
 @section('content')
-<form action="{{ url('sales') }}" method="POST">
+<form action="{{ url('sales') }}" method="POST" enctype="multipart/form-data">
     @csrf
 
     <div class="card mb-6">
@@ -86,6 +86,25 @@
         </div>
     </div>
 
+    <div class="card mb-6">
+        <div class="card-header">
+            <h3>Deposit &amp; Receipt</h3>
+        </div>
+        <div class="card-body">
+            <p class="form-hint mb-4">If the outlet has already banked the cash and sent you the slip, enter it now &mdash; the sale is recorded and verified in one go. Leave blank to add it later from the sale's page.</p>
+            <div class="form-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Amount Deposited</label>
+                    <input type="number" name="cash_submitted" id="cash_submitted" step="0.01" min="0" class="form-input" placeholder="Matches total by default">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Receipt / Deposit Slip Photo</label>
+                    <input type="file" name="cash_receipt_image" accept="image/*" class="form-input">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="flex justify-end gap-3">
         <a href="{{ url('sales') }}" class="btn btn-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Record Sale</button>
@@ -148,12 +167,21 @@ function calculatePrice(element) {
     updateGrandTotal();
 }
 
+var cashFieldTouched = false;
+document.getElementById('cash_submitted').addEventListener('input', function() {
+    cashFieldTouched = true;
+});
+
 function updateGrandTotal() {
     let total = 0;
     document.querySelectorAll('.item-price').forEach(el => {
         total += parseFloat(el.textContent) || 0;
     });
     document.getElementById('grand-total').textContent = total.toFixed(2);
+
+    if (!cashFieldTouched) {
+        document.getElementById('cash_submitted').value = total > 0 ? total.toFixed(2) : '';
+    }
 }
 
 document.getElementById('add-item').addEventListener('click', function() {

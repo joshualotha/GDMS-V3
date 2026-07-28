@@ -27,6 +27,7 @@
 @endif
 
 <div class="table-container">
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -59,5 +60,6 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 @endsection

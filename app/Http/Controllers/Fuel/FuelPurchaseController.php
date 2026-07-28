@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Fuel;
 use App\Http\Controllers\Controller;
 use App\Models\FuelPurchase;
 use App\Models\FuelStock;
+use App\Models\Supplier;
 use App\Services\FuelService;
 use Illuminate\Http\Request;
 
@@ -19,7 +20,7 @@ class FuelPurchaseController extends Controller
 
     public function index()
     {
-        $purchases = FuelPurchase::orderBy('date', 'desc')->get();
+        $purchases = FuelPurchase::with('supplierAccount')->orderBy('date', 'desc')->get();
         return view('fuel.purchases.index', compact('purchases'));
     }
 
@@ -31,7 +32,8 @@ class FuelPurchaseController extends Controller
 
     public function create()
     {
-        return view('fuel.purchases.create');
+        $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
+        return view('fuel.purchases.create', compact('suppliers'));
     }
 
     public function store(Request $request)
@@ -41,7 +43,7 @@ class FuelPurchaseController extends Controller
             'fuel_type' => 'required|in:diesel,petrol',
             'litres' => 'required|numeric|min:0.01',
             'unit_cost' => 'required|numeric|min:0',
-            'supplier' => 'nullable|string',
+            'supplier_id' => 'nullable|exists:suppliers,id',
             'receipt_number' => 'nullable|string',
         ]);
 

@@ -25,6 +25,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plate Number</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Vehicle Book Value</th>
                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
@@ -36,6 +37,13 @@
                     <td class="px-6 py-4 whitespace-nowrap capitalize">{{ $outlet->type }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $outlet->location }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{{ $outlet->plate_number ?? '-' }}</td>
+                    <td class="px-6 py-4 text-right">
+                        @if($outlet->asset)
+                            <a href="{{ route('assets.show', $outlet->asset) }}" class="text-indigo-600 hover:underline">{{ number_format($outlet->asset->current_book_value, 2) }}</a>
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td class="px-6 py-4 text-center">
                         <form action="{{ route('outlets.toggle', $outlet) }}" method="POST">
                             @csrf
@@ -50,7 +58,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No outlets found.</td>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No outlets found.</td>
                 </tr>
             @endforelse
         </tbody>

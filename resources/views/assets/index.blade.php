@@ -7,18 +7,11 @@
 @section('content')
 <div class="mb-4 flex justify-between items-center">
     <div class="flex gap-2">
-        <form action="{{ route('assets.run-depreciation') }}" method="POST" class="inline">
-            @csrf
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-                    onclick="return confirm('Run monthly depreciation for all eligible assets?')">
-                Run Monthly Depreciation
-            </button>
-        </form>
         <form action="{{ route('assets.catch-up-depreciation') }}" method="POST" class="inline">
             @csrf
             <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm"
-                    onclick="return confirm('Catch up all missed depreciation from purchase date? This will recalculate book values.')">
-                Catch Up Depreciation
+                    onclick="return confirm('Run depreciation for all assets that are due? This catches up any missed months automatically.')">
+                Run Depreciation
             </button>
         </form>
     </div>
@@ -63,8 +56,16 @@
                             {{ ucwords(str_replace('_', ' ', $asset->status)) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
-                        <a href="{{ route('assets.edit', $asset) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Edit</a>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ route('assets.show', $asset) }}" class="text-indigo-600 hover:text-indigo-900 text-sm mr-3">View</a>
+                        @if($asset->status == 'active')
+                            <a href="{{ route('assets.edit', $asset) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Edit</a>
+                        @else
+                            <form action="{{ route('assets.reactivate', $asset) }}" method="POST" class="inline" onsubmit="return confirm('Reactivate this asset?')">
+                                @csrf
+                                <button type="submit" class="text-green-600 hover:text-green-900 text-sm">Reactivate</button>
+                            </form>
+                        @endif
                     </td>
                 </tr>
             @empty

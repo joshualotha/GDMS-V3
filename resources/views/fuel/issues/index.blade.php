@@ -34,7 +34,7 @@
             @forelse($issues as $issue)
                 <tr>
                     <td class="px-6 py-4">{{ $issue->date->format('d/m/Y') }}</td>
-                    <td class="px-6 py-4">{{ $issue->asset->name }}</td>
+                    <td class="px-6 py-4">{{ $issue->outlet->name }}</td>
                     <td class="px-6 py-4 capitalize">{{ $issue->fuel_type }}</td>
                     <td class="px-6 py-4 text-right">{{ number_format($issue->litres, 2) }}</td>
                     <td class="px-6 py-4 text-right">{{ $issue->odometer_km ?? '-' }}</td>

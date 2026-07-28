@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\DepreciationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AssetController extends Controller
 {
@@ -47,36 +48,38 @@ class AssetController extends Controller
             'assigned_to_employee' => 'nullable|exists:users,id',
         ]);
 
-        $assetNumber = ReferenceGenerator::generateAssetNumber();
+        DB::transaction(function () use ($validated) {
+            $assetNumber = ReferenceGenerator::generateAssetNumber();
 
-        $category = AssetCategory::find($validated['asset_category_id']);
-        $depreciationRate = $validated['depreciation_rate'] ?? $category->default_depreciation_rate;
+            $category = AssetCategory::find($validated['asset_category_id']);
+            $depreciationRate = $validated['depreciation_rate'] ?? $category->default_depreciation_rate;
 
-        $purchaseCost = $validated['purchase_cost'];
-        $purchaseDate = $validated['purchase_date'] ?? now()->toDateString();
+            $purchaseCost = $validated['purchase_cost'];
+            $purchaseDate = $validated['purchase_date'] ?? now()->toDateString();
 
-        // Create the asset with initial values (book value = purchase cost)
-        $asset = CompanyAsset::create([
-            'asset_number' => $assetNumber,
-            'name' => $validated['name'],
-            'asset_category_id' => $validated['asset_category_id'],
-            'serial_number' => $validated['serial_number'] ?? null,
-            'plate_number' => $validated['plate_number'] ?? null,
-            'purchase_date' => $purchaseDate,
-            'purchase_cost' => $purchaseCost,
-            'accumulated_depreciation' => 0,
-            'current_book_value' => $purchaseCost,
-            'depreciation_rate' => $depreciationRate,
-            'assigned_to_outlet' => $validated['assigned_to_outlet'] ?? null,
-            'assigned_to_employee' => $validated['assigned_to_employee'] ?? null,
-            'status' => 'active',
-        ]);
+            // Create the asset with initial values (book value = purchase cost)
+            $asset = CompanyAsset::create([
+                'asset_number' => $assetNumber,
+                'name' => $validated['name'],
+                'asset_category_id' => $validated['asset_category_id'],
+                'serial_number' => $validated['serial_number'] ?? null,
+                'plate_number' => $validated['plate_number'] ?? null,
+                'purchase_date' => $purchaseDate,
+                'purchase_cost' => $purchaseCost,
+                'accumulated_depreciation' => 0,
+                'current_book_value' => $purchaseCost,
+                'depreciation_rate' => $depreciationRate,
+                'assigned_to_outlet' => $validated['assigned_to_outlet'] ?? null,
+                'assigned_to_employee' => $validated['assigned_to_employee'] ?? null,
+                'status' => 'active',
+            ]);
 
-        // Auto-calculate past depreciation from purchase date using the service
-        if ($depreciationRate > 0 && $purchaseDate) {
-            $depreciationService = new DepreciationService();
-            $depreciationService->catchUpDepreciation($asset->id);
-        }
+            // Auto-calculate past depreciation from purchase date using the service
+            if ($depreciationRate > 0 && $purchaseDate) {
+                $depreciationService = new DepreciationService();
+                $depreciationService->catchUpDepreciation($asset->id);
+            }
+        });
 
         return redirect()->route('assets.index')
             ->with('success', 'Asset created successfully.');
@@ -84,7 +87,7 @@ class AssetController extends Controller
 
     public function show(CompanyAsset $asset)
     {
-        $asset->load('category', 'outlet', 'employee', 'depreciationLogs', 'maintenanceLogs');
+        $asset->load('category', 'outlet', 'employee', 'depreciationLogs', 'expenses', 'outletAsCar');
 
         return view('assets.show', compact('asset'));
     }
@@ -100,6 +103,11 @@ class AssetController extends Controller
 
     public function update(Request $request, CompanyAsset $asset)
     {
+        if ($asset->status === 'disposed') {
+            return redirect()->route('assets.show', $asset)
+                ->with('error', 'This asset is disposed. Reactivate it before editing.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'asset_category_id' => 'required|exists:asset_categories,id',
@@ -107,12 +115,9 @@ class AssetController extends Controller
             'plate_number' => 'nullable|string|max:255',
             'purchase_date' => 'nullable|date',
             'purchase_cost' => 'required|numeric|min:0',
-            'accumulated_depreciation' => 'nullable|numeric|min:0',
-            'current_book_value' => 'nullable|numeric|min:0',
             'depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'assigned_to_outlet' => 'nullable|exists:outlets,id',
             'assigned_to_employee' => 'nullable|exists:users,id',
-            'status' => 'required|in:active,disposed',
         ]);
 
         $data = [
@@ -125,7 +130,6 @@ class AssetController extends Controller
             'depreciation_rate' => $validated['depreciation_rate'] ?? 0,
             'assigned_to_outlet' => $validated['assigned_to_outlet'] ?? null,
             'assigned_to_employee' => $validated['assigned_to_employee'] ?? null,
-            'status' => $validated['status'],
         ];
 
         // Check if depreciation-affecting fields changed
@@ -141,15 +145,8 @@ class AssetController extends Controller
             // Clear old depreciation logs so catchUp can recreate them
             $asset->depreciationLogs()->delete();
         } else {
-            if (isset($validated['accumulated_depreciation'])) {
-                $data['accumulated_depreciation'] = $validated['accumulated_depreciation'];
-            }
-
-            if (isset($validated['current_book_value'])) {
-                $data['current_book_value'] = $validated['current_book_value'];
-            } else {
-                $data['current_book_value'] = ($validated['purchase_cost'] ?? 0) - ($validated['accumulated_depreciation'] ?? 0);
-            }
+            // accumulated_depreciation and current_book_value are system-computed
+            // (display-only in the edit form) — leave them untouched here.
         }
 
         $asset->update($data);
@@ -177,22 +174,53 @@ class AssetController extends Controller
             ->with('success', 'Asset deleted successfully.');
     }
 
-    public function runDepreciation(Request $request)
+    /**
+     * Disposal is a dedicated action, not a status dropdown in the general edit form.
+     * It intentionally leaves purchase cost, depreciation rate, accumulated depreciation,
+     * and book value exactly as they were — a disposal shouldn't rewrite history.
+     */
+    public function dispose(Request $request, CompanyAsset $asset)
     {
-        $depreciationService = new DepreciationService;
-
-        $assetId = $request->input('asset_id');
-        $results = $depreciationService->runReducingBalance($assetId);
-
-        if (empty($results)) {
-            return redirect()->back()->with('info', 'No assets eligible for depreciation this month.');
+        if ($asset->status === 'disposed') {
+            return back()->with('error', 'This asset is already disposed.');
         }
 
-        $count = count($results);
-        $total = array_sum(array_column($results, 'depreciation'));
+        $validated = $request->validate([
+            'disposed_at' => 'required|date',
+            'disposal_notes' => 'nullable|string',
+        ]);
 
-        return redirect()->back()
-            ->with('success', "Depreciation run for {$count} asset(s). Total: ".number_format($total, 2));
+        DB::transaction(function () use ($asset, $validated) {
+            $asset->update([
+                'status' => 'disposed',
+                'disposed_at' => $validated['disposed_at'],
+                'disposal_notes' => $validated['disposal_notes'] ?? null,
+            ]);
+
+            // A disposed vehicle can't keep selling as an outlet.
+            if ($asset->outletAsCar) {
+                $asset->outletAsCar->update(['is_active' => false]);
+            }
+        });
+
+        return redirect()->route('assets.show', $asset)
+            ->with('success', 'Asset marked as disposed.');
+    }
+
+    public function reactivate(CompanyAsset $asset)
+    {
+        if ($asset->status !== 'disposed') {
+            return back()->with('error', 'This asset is not disposed.');
+        }
+
+        $asset->update([
+            'status' => 'active',
+            'disposed_at' => null,
+            'disposal_notes' => null,
+        ]);
+
+        return redirect()->route('assets.show', $asset)
+            ->with('success', 'Asset reactivated. Note: its outlet (if any) was deactivated on disposal and was not automatically reactivated.');
     }
 
     public function catchUpDepreciation(Request $request)

@@ -10,17 +10,17 @@
     
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700">Customer Name *</label>
-        <input type="text" name="name" required class="mt-1 w-full border rounded px-3 py-2">
+        <input type="text" name="name" required class="mt-1 form-input">
     </div>
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700">Phone</label>
-        <input type="text" name="phone" class="mt-1 w-full border rounded px-3 py-2">
+        <input type="text" name="phone" class="mt-1 form-input">
     </div>
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700">Customer Type *</label>
-        <select name="type" required class="mt-1 w-full border rounded px-3 py-2">
+        <select name="type" required class="mt-1 form-select">
             <option value="walk_in">Walk-in</option>
             <option value="regular">Regular</option>
             <option value="wholesale">Wholesale</option>

@@ -26,7 +26,11 @@ class ExpenseCategoryController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        ExpenseCategory::create($validated);
+        $category = ExpenseCategory::create($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $category->id, 'name' => $category->name]);
+        }
 
         return redirect()->route('expense-categories.index')->with('success', 'Category created.');
     }

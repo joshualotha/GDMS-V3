@@ -37,6 +37,7 @@
             <h3>Cylinders</h3>
             <span class="text-sm text-muted">Select outlet to see stock levels</span>
         </div>
+        <div class="table-scroll">
         <table>
             <thead>
                 <tr>
@@ -72,6 +73,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="flex justify-end gap-3">

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +19,7 @@ class SettingController extends Controller
             'financial_year_start' => Setting::get('financial_year_start', '01'),
         ];
 
-        $admin = User::first();
+        $admin = Auth::user();
 
         return view('settings.general.index', compact('settings', 'admin'));
     }

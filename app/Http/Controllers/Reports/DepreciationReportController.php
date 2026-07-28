@@ -30,18 +30,18 @@ class DepreciationReportController extends Controller
         foreach ($logs->groupBy('asset_id') as $assetId => $assetLogs) {
             $asset = $assetLogs->first()->asset;
             $totalDepreciation = $assetLogs->sum('depreciation_amount');
-            
-            // Get opening from first log (chronologically)
-            $firstLog = $assetLogs->sortBy('created_at')->first();
-            // Get closing from current asset value
-            $currentBookValue = $asset->current_book_value ?? $firstLog->book_value_before - $totalDepreciation;
-            
+
+            // Order by the log's own period, not created_at (catch-up runs can
+            // insert several logs with near-identical timestamps in one go).
+            $firstLog = $assetLogs->sortBy('period_start')->first();
+            $lastLog = $assetLogs->sortBy('period_start')->last();
+
             $summary[] = (object) [
                 'asset_name' => $asset->name ?? 'Unknown',
                 'annual_rate' => $firstLog->depreciation_rate ?? 0,
                 'opening_book_value' => $firstLog->book_value_before,
                 'total_depreciation' => $totalDepreciation,
-                'closing_book_value' => $currentBookValue,
+                'closing_book_value' => $lastLog->book_value_after,
                 'entry_count' => $assetLogs->count(),
             ];
         }
@@ -70,16 +70,16 @@ class DepreciationReportController extends Controller
         foreach ($logs->groupBy('asset_id') as $assetId => $assetLogs) {
             $asset = $assetLogs->first()->asset;
             $totalDepreciation = $assetLogs->sum('depreciation_amount');
-            
-            $firstLog = $assetLogs->sortBy('created_at')->first();
-            $currentBookValue = $asset->current_book_value ?? $firstLog->book_value_before - $totalDepreciation;
-            
+
+            $firstLog = $assetLogs->sortBy('period_start')->first();
+            $lastLog = $assetLogs->sortBy('period_start')->last();
+
             $summary[] = (object) [
                 'asset_name' => $asset->name ?? 'Unknown',
                 'annual_rate' => $firstLog->depreciation_rate ?? 0,
                 'opening_book_value' => $firstLog->book_value_before,
                 'total_depreciation' => $totalDepreciation,
-                'closing_book_value' => $currentBookValue,
+                'closing_book_value' => $lastLog->book_value_after,
                 'entry_count' => $assetLogs->count(),
             ];
         }

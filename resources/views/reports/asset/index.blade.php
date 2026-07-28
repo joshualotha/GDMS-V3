@@ -8,7 +8,7 @@
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Category</label>
-        <select name="asset_category_id" class="border rounded px-2 py-1">
+        <select name="asset_category_id" class="form-select-sm">
             <option value="">All Categories</option>
             @foreach($categories as $cat)
                 <option value="{{ $cat->id }}" {{ request('asset_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -17,7 +17,7 @@
     </div>
     <div>
         <label class="block text-xs text-gray-500">Status</label>
-        <select name="status" class="border rounded px-2 py-1">
+        <select name="status" class="form-select-sm">
             <option value="">All Status</option>
             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
             <option value="under_maintenance" {{ request('status') == 'under_maintenance' ? 'selected' : '' }}>Under Maintenance</option>

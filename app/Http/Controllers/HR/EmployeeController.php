@@ -8,6 +8,7 @@ use App\Helpers\ReferenceGenerator;
 use App\Models\Employee;
 use App\Models\Outlet;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
 {
@@ -26,12 +27,14 @@ class EmployeeController extends Controller
     public function store(StoreEmployeeRequest $request)
     {
         $validated = $request->validated();
-        
-        $employeeNumber = ReferenceGenerator::generateEmployeeNumber();
 
-        Employee::create(array_merge($validated, [
-            'employee_number' => $employeeNumber,
-        ]));
+        DB::transaction(function () use ($validated) {
+            $employeeNumber = ReferenceGenerator::generateEmployeeNumber();
+
+            Employee::create(array_merge($validated, [
+                'employee_number' => $employeeNumber,
+            ]));
+        });
 
         return redirect()->route('employees.index')
             ->with('success', 'Employee created successfully.');
@@ -72,6 +75,11 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        if ($employee->payrollItems()->exists()) {
+            return redirect()->route('employees.index')
+                ->with('error', 'Cannot delete an employee with payroll history. Set their status to "terminated" instead.');
+        }
+
         $employee->delete();
         return redirect()->route('employees.index')
             ->with('success', 'Employee deleted successfully.');

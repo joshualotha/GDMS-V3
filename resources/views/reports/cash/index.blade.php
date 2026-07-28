@@ -8,15 +8,15 @@
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Date From</label>
-        <input type="date" name="date_from" value="{{ request('date_from', date('Y-m-01')) }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_from" value="{{ request('date_from', date('Y-m-01')) }}" class="form-input-sm">
     </div>
     <div>
         <label class="block text-xs text-gray-500">Date To</label>
-        <input type="date" name="date_to" value="{{ request('date_to', date('Y-m-d')) }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_to" value="{{ request('date_to', date('Y-m-d')) }}" class="form-input-sm">
     </div>
     <div>
         <label class="block text-xs text-gray-500">Outlet</label>
-        <select name="outlet_id" class="border rounded px-2 py-1">
+        <select name="outlet_id" class="form-select-sm">
             <option value="">All Outlets</option>
             @foreach($outlets as $outlet)
                 <option value="{{ $outlet->id }}" {{ request('outlet_id') == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
@@ -25,7 +25,7 @@
     </div>
     <div>
         <label class="block text-xs text-gray-500">Status</label>
-        <select name="status" class="border rounded px-2 py-1">
+        <select name="status" class="form-select-sm">
             <option value="">All Status</option>
             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
             <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
@@ -55,7 +55,7 @@
                     <td class="px-4 py-2">{{ $sale->sale_date->format('d/m/Y') }}</td>
                     <td class="px-4 py-2">{{ $sale->outlet->name ?? '-' }}</td>
                     <td class="px-4 py-2">{{ $sale->sale_number ?? '-' }}</td>
-                    <td class="px-4 py-2 text-right">{{ number_format($sale->total_amount, 2) }}</td>
+                    <td class="px-4 py-2 text-right">{{ number_format($sale->total_price, 2) }}</td>
                     <td class="px-4 py-2 text-right">{{ number_format($sale->cash_submitted, 2) }}</td>
                     <td class="px-4 py-2 text-right {{ $sale->cash_variance != 0 ? 'text-red-600 font-bold' : 'text-green-600' }}">
                         {{ number_format($sale->cash_variance, 2) }}

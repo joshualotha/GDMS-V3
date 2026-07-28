@@ -14,12 +14,12 @@
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700">GRN Number</label>
-                <input type="text" value="{{ $grnNumber }}" disabled class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50">
+                <input type="text" value="{{ $grnNumber }}" disabled class="mt-1 form-input bg-gray-50">
             </div>
             <div>
                 <label for="supplier_id" class="block text-sm font-medium text-gray-700">Supplier</label>
                 <select name="supplier_id" id="supplier_id" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    class="mt-1 form-select">
                     <option value="">Select Supplier</option>
                     @foreach($suppliers as $supplier)
                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
@@ -31,7 +31,7 @@
         <div>
             <label for="purchase_order_id" class="block text-sm font-medium text-gray-700">Select Purchase Order</label>
             <select name="purchase_order_id" id="purchase_order_id"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                class="mt-1 form-select">
                 <option value="">Select PO (or enter manually below)</option>
                 @foreach(\App\Models\PurchaseOrder::where('status', 'pending')->with('supplier')->get() as $po)
                     <option value="{{ $po->id }}" data-supplier-id="{{ $po->supplier_id }}">{{ $po->po_number }} - {{ $po->supplier->name }}</option>
@@ -42,7 +42,7 @@
         <div class="mt-4">
             <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
             <textarea name="notes" id="notes" rows="2"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('notes') }}</textarea>
+                class="mt-1 form-input">{{ old('notes') }}</textarea>
         </div>
     </div>
 
@@ -62,7 +62,7 @@
             <div class="item-row grid grid-cols-6 gap-2 items-center">
                 <div class="col-span-2">
                     <select name="items[0][cylinder_type_id]" required
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-cylinder">
+                        class="form-select item-cylinder">
                         <option value="">Select</option>
                         @foreach($cylinderTypes as $ct)
                             <option value="{{ $ct->id }}" data-full-cost="{{ $ct->full_sale_cost ?? 0 }}" data-refill-cost="{{ $ct->refill_cost ?? 0 }}">
@@ -73,18 +73,18 @@
                 </div>
                 <div>
                     <select name="items[0][purchase_type]" required
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-type">
+                        class="form-select item-type">
                         <option value="full">Full</option>
                         <option value="refill">Refill</option>
                     </select>
                 </div>
                 <div>
                     <input type="number" name="items[0][quantity]" min="1" value="1" required
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-qty">
+                        class="form-input item-qty">
                 </div>
                 <div>
                     <input type="number" name="items[0][unit_cost]" step="0.01" min="0" value="0" required
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-cost">
+                        class="form-input item-cost">
                 </div>
                 <div class="text-right font-medium item-total">0.00</div>
                 <div>
@@ -179,24 +179,24 @@ document.getElementById('purchase_order_id').addEventListener('change', function
                     <div class="item-row grid grid-cols-6 gap-2 items-center">
                         <div class="col-span-2">
                             <select name="items[${itemIndex}][cylinder_type_id]" required
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-cylinder">
+                                class="form-select item-cylinder">
                                 <option value="${item.cylinder_type_id}">${item.cylinder_type?.name || ''} (${item.cylinder_type?.size_kg || 0}kg)</option>
                             </select>
                         </div>
                         <div>
                             <select name="items[${itemIndex}][purchase_type]" required
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-type">
+                                class="form-select item-type">
                                 <option value="full" ${isFull ? 'selected' : ''}>Full</option>
                                 <option value="refill" ${!isFull ? 'selected' : ''}>Refill</option>
                             </select>
                         </div>
                         <div>
                             <input type="number" name="items[${itemIndex}][quantity]" min="1" value="${item.quantity}" required
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-qty">
+                                class="form-input item-qty">
                         </div>
                         <div>
                             <input type="number" name="items[${itemIndex}][unit_cost]" step="0.01" min="0" value="${item.unit_cost}" required
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-cost">
+                                class="form-input item-cost">
                         </div>
                         <div class="text-right font-medium item-total">${(item.quantity * item.unit_cost).toFixed(2)}</div>
                         <div>
@@ -219,7 +219,7 @@ document.getElementById('add-item').addEventListener('click', function() {
         <div class="item-row grid grid-cols-6 gap-2 items-center">
             <div class="col-span-2">
                 <select name="items[${itemIndex}][cylinder_type_id]" required
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-cylinder">
+                    class="form-select item-cylinder">
                     <option value="">Select</option>
                     @foreach($cylinderTypes as $ct)
                         <option value="{{ $ct->id }}" data-full-cost="{{ $ct->full_sale_cost ?? 0 }}" data-refill-cost="{{ $ct->refill_cost ?? 0 }}">
@@ -230,18 +230,18 @@ document.getElementById('add-item').addEventListener('click', function() {
             </div>
             <div>
                 <select name="items[${itemIndex}][purchase_type]" required
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-type">
+                    class="form-select item-type">
                     <option value="full">Full</option>
                     <option value="refill">Refill</option>
                 </select>
             </div>
             <div>
                 <input type="number" name="items[${itemIndex}][quantity]" min="1" value="1" required
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-qty">
+                    class="form-input item-qty">
             </div>
             <div>
                 <input type="number" name="items[${itemIndex}][unit_cost]" step="0.01" min="0" value="0" required
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 item-cost">
+                    class="form-input item-cost">
             </div>
             <div class="text-right font-medium item-total">0.00</div>
             <div>

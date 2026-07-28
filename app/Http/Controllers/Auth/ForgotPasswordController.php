@@ -30,9 +30,8 @@ class ForgotPasswordController extends Controller
             ])->onlyInput('email');
         }
 
-        // Generate a password reset token
-        $token = Str::random(60);
-        Password::getRepository()->create($user, $token);
+        // Generate and persist a password reset token
+        $token = Password::getRepository()->create($user);
 
         // Send the notification using the system's default mail from address
         $user->notify(new PasswordResetNotification($token));

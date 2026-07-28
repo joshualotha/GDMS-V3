@@ -8,11 +8,11 @@
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Date From</label>
-        <input type="date" name="date_from" value="{{ request('date_from', date('Y-m-01')) }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_from" value="{{ request('date_from', date('Y-m-01')) }}" class="form-input-sm">
     </div>
     <div>
         <label class="block text-xs text-gray-500">Date To</label>
-        <input type="date" name="date_to" value="{{ request('date_to', date('Y-m-d')) }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_to" value="{{ request('date_to', date('Y-m-d')) }}" class="form-input-sm">
     </div>
     <button type="submit" class="bg-gray-600 text-white px-4 py-1 rounded hover:bg-gray-700">Generate</button>
     <a href="{{ route('reports.profit-loss.export', request()->query()) }}" class="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700">Export PDF</a>

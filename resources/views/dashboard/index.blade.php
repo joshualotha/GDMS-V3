@@ -6,6 +6,41 @@
 @section('breadcrumb', 'Overview of your gas distribution business')
 
 @section('content')
+@if($setupChecklist['visible'])
+    @php $requiredLeft = collect($setupChecklist['items'])->where('required', true)->where('done', false)->count(); @endphp
+    <div class="card mb-6" style="border-left: 4px solid var(--warning);">
+        <div class="card-header">
+            <h3>Getting Started — Setup Checklist</h3>
+            <span class="badge badge-warning">{{ $requiredLeft }} required item{{ $requiredLeft == 1 ? '' : 's' }} left</span>
+        </div>
+        <div class="card-body">
+            <p class="mb-4" style="font-size: 13px; color: var(--text-muted);">Add these before relying on the system day to day. Required items are needed for core operations; optional ones only matter if you use that module.</p>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                @foreach($setupChecklist['items'] as $item)
+                    <a href="{{ $item['url'] }}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); text-decoration: none; {{ $item['done'] ? 'opacity: 0.6;' : '' }}">
+                        <span style="width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 700;
+                            background: {{ $item['done'] ? 'var(--success)' : ($item['required'] ? 'var(--danger-bg)' : 'var(--bg-subtle)') }};
+                            color: {{ $item['done'] ? '#fff' : ($item['required'] ? 'var(--danger)' : 'var(--text-muted)') }};">
+                            @if($item['done'])
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            @else
+                                {{ $item['required'] ? '!' : '·' }}
+                            @endif
+                        </span>
+                        <span>
+                            <span style="display: block; font-weight: 600; font-size: 13px; color: var(--text-primary); text-decoration: {{ $item['done'] ? 'line-through' : 'none' }};">
+                                {{ $item['label'] }}
+                                @if(!$item['required'])<span style="font-weight: 400; color: var(--text-muted);">(optional)</span>@endif
+                            </span>
+                            <span style="display: block; font-size: 12px; color: var(--text-muted);">{{ $item['desc'] }}</span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endif
+
 {{-- Period Filter --}}
 <div class="flex justify-between items-center mb-6">
     <div class="flex gap-3 items-center">
@@ -32,9 +67,9 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         New Sale
     </a>
-    <a href="{{ url('procurement/purchase-orders/create') }}" class="btn btn-secondary btn-sm">
+    <a href="{{ url('warehouse/procurement/create') }}" class="btn btn-secondary btn-sm">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        New PO
+        New Procurement
     </a>
     <a href="{{ url('warehouse/movements') }}" class="btn btn-secondary btn-sm">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l5-5 5 5M7 7l5 5 5-5"/></svg>
@@ -51,9 +86,9 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-label">Pending Approvals</div>
+        <div class="stat-label">Needs Attention</div>
         <div class="stat-value" style="color: var(--primary);">{{ number_format($pendingApprovals) }}</div>
-        <div class="stat-sublabel">Sales & Cash</div>
+        <div class="stat-sublabel">Pending or flagged sales</div>
     </div>
 
     <div class="stat-card">
@@ -69,10 +104,60 @@
     </div>
 </div>
 
+{{-- Alerts Section --}}
+@if(count($alerts) > 0)
+<div class="card mb-6">
+    <div class="card-header">
+        <h3>Alerts</h3>
+    </div>
+    <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+        @foreach($alerts as $alert)
+            <div class="alert
+                {{ $alert['type'] == 'danger' ? 'alert-danger' : '' }}
+                {{ $alert['type'] == 'warning' ? 'alert-warning' : '' }}
+                {{ $alert['type'] == 'orange' ? 'alert-warning' : '' }}">
+                {{ $alert['message'] }}
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+{{-- Outlet Status Cards --}}
+<div class="mb-6">
+    <h2 class="mb-4">Outlet Status</h2>
+    <div class="grid-3">
+        @forelse($outletStockSummary as $summary)
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3>{{ $summary['outlet']->name }}</h3>
+                        <span class="badge badge-info">{{ $summary['outlet']->type }}</span>
+                    </div>
+                    <div class="stat-value">{{ number_format($summary['full_qty']) }}</div>
+                    <div class="text-sm" style="color: var(--text-muted);">full cylinders</div>
+                    <div class="text-sm mt-2" style="color: var(--text-muted);">
+                        @if($summary['last_sale_date'])
+                            Last sale: {{ $summary['last_sale_date']->format('d M Y') }}
+                        @else
+                            No sales yet
+                        @endif
+                    </div>
+                    @if($summary['pending_submission'])
+                        <div class="mt-2 badge badge-warning">Pending Submission</div>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <div class="col-span-full text-center">No outlets configured.</div>
+        @endforelse
+    </div>
+</div>
+
 {{-- Sales Metrics --}}
 <div class="mb-6">
     <h2 class="mb-4">Sales Performance</h2>
-    <div class="grid-4">
+    <div class="grid-2">
         <div class="stat-card">
             <div class="stat-label">Sales ({{ $periodLabel }})</div>
             <div class="stat-value" style="color: var(--success);">{{ number_format($periodSalesCount) }}</div>
@@ -83,45 +168,40 @@
             <div class="stat-value" style="color: {{ $periodProfit >= 0 ? 'var(--success)' : 'var(--danger)' }};">{{ number_format($periodProfit, 2) }}</div>
             <div class="stat-sublabel">{{ $profitMargin }}% margin</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-label">This Month Profit</div>
-            <div class="stat-value" style="color: {{ $monthProfit >= 0 ? 'var(--success)' : 'var(--danger)' }};">{{ number_format($monthProfit, 2) }}</div>
-            <div class="stat-sublabel">{{ $monthProfitMargin }}% margin</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Pending Tasks</div>
-            <div class="stat-value" style="color: var(--warning);">{{ $pendingPOs + $pendingGRNs }}</div>
-            <div class="stat-sublabel">POs: {{ $pendingPOs }} | GRNs: {{ $pendingGRNs }}</div>
-        </div>
     </div>
 </div>
 
 {{-- Finance & Expenses --}}
-<div class="grid-4 mb-6">
-    <div class="stat-card">
-        <div class="stat-label">Expenses ({{ $periodLabel }})</div>
-        <div class="stat-value" style="color: var(--danger);">{{ number_format($periodExpenses, 2) }}</div>
-        <div class="stat-sublabel">Total incurred</div>
+<div class="mb-6">
+    <h2 class="mb-4">Finance & Expenses</h2>
+    <div class="grid-2">
+        <div class="stat-card">
+            <div class="stat-label">Expenses ({{ $periodLabel }})</div>
+            <div class="stat-value" style="color: var(--danger);">{{ number_format($periodExpenses, 2) }}</div>
+            <div class="stat-sublabel">Total incurred</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Last Payroll</div>
+            <div class="stat-value">{{ number_format($lastPayrollTotal, 2) }}</div>
+            <div class="stat-sublabel">{{ $lastPayrollName }}</div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-label">Expenses (Month)</div>
-        <div class="stat-value" style="color: var(--danger);">{{ number_format($expensesMonth, 2) }}</div>
-        <div class="stat-sublabel">This month</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Last Payroll</div>
-        <div class="stat-value">{{ number_format($lastPayrollTotal, 2) }}</div>
-        <div class="stat-sublabel">{{ $lastPayrollName }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Diesel Stock</div>
-        <div class="stat-value" style="color: var(--info);">{{ number_format($fuelStocks['Diesel'] ?? 0) }}</div>
-        <div class="stat-sublabel">Litres</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Petrol Stock</div>
-        <div class="stat-value" style="color: var(--info);">{{ number_format($fuelStocks['Petrol'] ?? 0) }}</div>
-        <div class="stat-sublabel">Litres</div>
+</div>
+
+{{-- Fuel Stock --}}
+<div class="mb-6">
+    <h2 class="mb-4">Fuel Stock</h2>
+    <div class="grid-2">
+        <div class="stat-card">
+            <div class="stat-label">Diesel Stock</div>
+            <div class="stat-value" style="color: var(--info);">{{ number_format($fuelStocks['Diesel'] ?? 0) }}</div>
+            <div class="stat-sublabel">Litres</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Petrol Stock</div>
+            <div class="stat-value" style="color: var(--info);">{{ number_format($fuelStocks['Petrol'] ?? 0) }}</div>
+            <div class="stat-sublabel">Litres</div>
+        </div>
     </div>
 </div>
 
@@ -235,56 +315,6 @@
         </table>
     </div>
 </div>
-
-{{-- Outlet Status Cards --}}
-<div class="mb-6">
-    <h2 class="mb-4">Outlet Status</h2>
-    <div class="grid-3">
-        @forelse($outletStockSummary as $summary)
-            <div class="card">
-                <div class="card-body">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3>{{ $summary['outlet']->name }}</h3>
-                        <span class="badge badge-info">{{ $summary['outlet']->type }}</span>
-                    </div>
-                    <div class="stat-value">{{ number_format($summary['full_qty']) }}</div>
-                    <div class="text-sm" style="color: var(--text-muted);">full cylinders</div>
-                    <div class="text-sm mt-2" style="color: var(--text-muted);">
-                        @if($summary['last_sale_date'])
-                            Last sale: {{ $summary['last_sale_date']->format('d M Y') }}
-                        @else
-                            No sales yet
-                        @endif
-                    </div>
-                    @if($summary['pending_submission'])
-                        <div class="mt-2 badge badge-warning">Pending Submission</div>
-                    @endif
-                </div>
-            </div>
-        @empty
-            <div class="col-span-full text-center">No outlets configured.</div>
-        @endforelse
-    </div>
-</div>
-
-{{-- Alerts Section --}}
-@if(count($alerts) > 0)
-<div class="card mb-6">
-    <div class="card-header">
-        <h3>Alerts</h3>
-    </div>
-    <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
-        @foreach($alerts as $alert)
-            <div class="alert 
-                {{ $alert['type'] == 'danger' ? 'alert-danger' : '' }}
-                {{ $alert['type'] == 'warning' ? 'alert-warning' : '' }}
-                {{ $alert['type'] == 'orange' ? 'alert-warning' : '' }}">
-                {{ $alert['message'] }}
-            </div>
-        @endforeach
-    </div>
-</div>
-@endif
 
 {{-- Recent Activity Feed --}}
 <div class="card">

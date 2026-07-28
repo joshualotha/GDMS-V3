@@ -30,6 +30,6 @@ class Customer extends Model
 
     public function getTotalAmountAttribute(): float
     {
-        return $this->sales()->sum('total_amount');
+        return $this->sales()->sum('total_price');
     }
 }

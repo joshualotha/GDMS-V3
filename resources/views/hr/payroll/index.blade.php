@@ -62,6 +62,10 @@
                             @csrf
                             <button type="submit" class="text-green-600 hover:underline" onclick="return confirm('Mark this payroll as paid?')">Mark Paid</button>
                         </form>
+                        <form action="{{ route('payroll.unapprove', $period) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-yellow-700 hover:underline" onclick="return confirm('Revert this payroll period back to draft?')">Revert to Draft</button>
+                        </form>
                         @endif
                     </td>
                 </tr>

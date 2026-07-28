@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FuelPurchase extends Model
 {
@@ -13,6 +14,7 @@ class FuelPurchase extends Model
         'unit_cost',
         'total_cost',
         'supplier',
+        'supplier_id',
         'receipt_number',
     ];
 
@@ -28,5 +30,10 @@ class FuelPurchase extends Model
         static::creating(function ($purchase) {
             $purchase->total_cost = $purchase->litres * $purchase->unit_cost;
         });
+    }
+
+    public function supplierAccount(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

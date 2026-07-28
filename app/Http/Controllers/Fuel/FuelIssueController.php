@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Fuel;
 
 use App\Http\Controllers\Controller;
-use App\Models\FuelAsset;
+use App\Models\Outlet;
 use App\Models\FuelIssue;
 use App\Services\FuelService;
 use Illuminate\Http\Request;
@@ -19,23 +19,23 @@ class FuelIssueController extends Controller
 
     public function index()
     {
-        $issues = FuelIssue::with('asset')->orderBy('date', 'desc')->get();
+        $issues = FuelIssue::with('outlet')->orderBy('date', 'desc')->get();
 
         return view('fuel.issues.index', compact('issues'));
     }
 
     public function create()
     {
-        $assets = FuelAsset::where('type', 'car')->where('is_active', true)->orderBy('name')->get();
+        $outlets = Outlet::where('type', 'car')->where('is_active', true)->orderBy('name')->get();
 
-        return view('fuel.issues.create', compact('assets'));
+        return view('fuel.issues.create', compact('outlets'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'date' => 'required|date',
-            'asset_id' => 'required|exists:fuel_assets,id',
+            'outlet_id' => 'required|exists:outlets,id',
             'fuel_type' => 'required|in:diesel,petrol',
             'litres' => 'required|numeric|min:0.01',
             'odometer_km' => 'nullable|integer',

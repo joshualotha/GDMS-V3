@@ -8,7 +8,7 @@
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Payroll Period</label>
-        <select name="period_id" class="border rounded px-2 py-1">
+        <select name="period_id" class="form-select-sm">
             <option value="">Select Period</option>
             @foreach($periods as $period)
                 <option value="{{ $period->id }}" {{ request('period_id') == $period->id ? 'selected' : '' }}>
@@ -19,7 +19,7 @@
     </div>
     <div>
         <label class="block text-xs text-gray-500">Employee (Optional)</label>
-        <select name="employee_id" class="border rounded px-2 py-1">
+        <select name="employee_id" class="form-select-sm">
             <option value="">All Employees</option>
             @foreach($employees as $emp)
                 <option value="{{ $emp->id }}" {{ request('employee_id') == $emp->id ? 'selected' : '' }}>

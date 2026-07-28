@@ -32,7 +32,7 @@ class FuelService
                 'expense_category_id' => $fuelCategory->id,
                 'expense_date' => $data['date'] ?? today(),
                 'description' => 'Fuel Purchase - '.ucfirst($data['fuel_type']).' ('.$data['litres'].'L)',
-                'amount' => $data['total_cost'],
+                'amount' => $purchase->total_cost,
                 'reference' => $purchase->purchase_number,
             ]);
 
@@ -43,7 +43,7 @@ class FuelService
     public function issueFuel(array $data): FuelIssue
     {
         return DB::transaction(function () use ($data) {
-            $fuelStock = FuelStock::where('fuel_type', $data['fuel_type'])->first();
+            $fuelStock = FuelStock::where('fuel_type', $data['fuel_type'])->lockForUpdate()->first();
             $available = $fuelStock ? $fuelStock->litres : 0;
 
             if ($data['litres'] > $available) {

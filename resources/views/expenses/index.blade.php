@@ -23,7 +23,7 @@
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Category</label>
-        <select name="category_id" class="border rounded px-2 py-1">
+        <select name="category_id" class="form-select-sm">
             <option value="">All Categories</option>
             @foreach($categories as $cat)
                 <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -31,12 +31,21 @@
         </select>
     </div>
     <div>
+        <label class="block text-xs text-gray-500">Asset</label>
+        <select name="asset_id" class="form-select-sm">
+            <option value="">All Assets</option>
+            @foreach($assets as $asset)
+                <option value="{{ $asset->id }}" {{ request('asset_id') == $asset->id ? 'selected' : '' }}>{{ $asset->name }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
         <label class="block text-xs text-gray-500">Date From</label>
-        <input type="date" name="date_from" value="{{ request('date_from') }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-input-sm">
     </div>
     <div>
         <label class="block text-xs text-gray-500">Date To</label>
-        <input type="date" name="date_to" value="{{ request('date_to') }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-input-sm">
     </div>
     <button type="submit" class="bg-gray-600 text-white px-4 py-1 rounded hover:bg-gray-700">Filter</button>
     <a href="{{ route('expenses.index') }}" class="px-4 py-1 text-gray-600 hover:underline">Clear</a>
@@ -50,6 +59,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
             </tr>
@@ -61,19 +71,26 @@
                     <td class="px-6 py-4">{{ $expense->expense_date->format('d/m/Y') }}</td>
                     <td class="px-6 py-4">{{ $expense->category->name }}</td>
                     <td class="px-6 py-4">{{ $expense->description }}</td>
+                    <td class="px-6 py-4">
+                        @if($expense->asset)
+                            <a href="{{ route('assets.show', $expense->asset) }}" class="text-indigo-600 hover:underline">{{ $expense->asset->name }}</a>
+                        @else
+                            <span class="text-gray-400">-</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 text-right">{{ number_format($expense->amount, 2) }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500">{{ $expense->reference ?? '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No expenses found.</td>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No expenses found.</td>
                 </tr>
             @endforelse
         </tbody>
         @if($expenses->count() > 0)
         <tfoot class="bg-gray-50 font-semibold">
             <tr>
-                <td colspan="4" class="px-6 py-3 text-right">Total</td>
+                <td colspan="5" class="px-6 py-3 text-right">Total</td>
                 <td class="px-6 py-3 text-right">{{ number_format($expenses->sum('amount'), 2) }}</td>
                 <td></td>
             </tr>

@@ -29,31 +29,46 @@
         <div id="car-fields" class="{{ old('type') != 'car' ? 'hidden' : '' }}">
             <div class="bg-blue-50 rounded-lg p-4 mb-6">
                 <h4 class="font-medium text-blue-900 mb-3">Vehicle Details</h4>
-                
+                <p class="text-xs text-gray-600 mb-4">A car outlet is a depreciable asset. Either link it to an asset you've already added, or fill in the details below to create it now.</p>
+
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Link to Existing Asset</label>
-                    <select name="asset_id" id="asset-select" 
+                    <select name="asset_id" id="asset-select" onchange="toggleNewAssetFields()"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="">-- Select existing asset --</option>
-                        @foreach($assets as $asset)
-                        <option value="{{ $asset->id }}">{{ $asset->name }} ({{ $asset->plate_number }})</option>
+                        <option value="">-- Create a new asset for this vehicle --</option>
+                        @foreach($availableAssets as $asset)
+                        <option value="{{ $asset->id }}">{{ $asset->name }} ({{ $asset->plate_number ?? 'no plate' }})</option>
                         @endforeach
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">Leave empty to create new asset automatically</p>
                 </div>
 
-                <div class="grid-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Plate Number</label>
-                        <input type="text" name="plate_number" value="{{ old('plate_number') }}" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                            placeholder="e.g. T 123 ABC">
+                <div id="new-asset-fields">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Asset Category *</label>
+                        <select name="asset_category_id" id="asset-category"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Select category</option>
+                            @foreach($depreciableCategories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }} ({{ $category->default_depreciation_rate }}% / yr)</option>
+                            @endforeach
+                        </select>
+                        @if($depreciableCategories->isEmpty())
+                            <p class="text-xs text-red-600 mt-1">No depreciable asset categories exist yet. <a href="{{ route('asset-categories.index') }}" class="underline">Create one first</a>.</p>
+                        @endif
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Cost</label>
-                        <input type="number" name="purchase_cost" value="{{ old('purchase_cost') }}" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                            placeholder="0">
+                    <div class="grid-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Plate Number</label>
+                            <input type="text" name="plate_number" value="{{ old('plate_number') }}"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                placeholder="e.g. T 123 ABC">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Cost</label>
+                            <input type="number" name="purchase_cost" value="{{ old('purchase_cost') }}"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                placeholder="0">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -97,5 +112,14 @@ function toggleCarFields(type) {
         document.getElementById('physical-fields').classList.remove('hidden');
     }
 }
+
+function toggleNewAssetFields() {
+    var linkingToExisting = document.getElementById('asset-select').value !== '';
+    var fields = document.getElementById('new-asset-fields');
+    var categorySelect = document.getElementById('asset-category');
+    fields.classList.toggle('hidden', linkingToExisting);
+    categorySelect.required = !linkingToExisting;
+}
+document.addEventListener('DOMContentLoaded', toggleNewAssetFields);
 </script>
 @endsection

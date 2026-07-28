@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\CylinderType;
 use App\Models\StockMain;
-use App\Models\StockOutlet;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
 use Illuminate\Support\Facades\DB;
@@ -52,14 +51,17 @@ class TransferService
                     "Transfer to outlet ID: {$outletId}"
                 );
 
-                // Add to outlet stock
-                StockOutlet::updateOrCreate(
-                    [
-                        'outlet_id' => $outletId,
-                        'cylinder_type_id' => $item['cylinder_type_id'],
-                    ],
-                    []
-                )->increment('full_qty', $item['quantity']);
+                // Add to outlet stock (also records the outlet-side ledger entry)
+                $stockService->updateOutletStock(
+                    $outletId,
+                    $item['cylinder_type_id'],
+                    $item['quantity'],
+                    0,
+                    'transfer_in',
+                    'StockTransfer',
+                    $transfer->id,
+                    "Transfer from main store"
+                );
             }
 
             $transfer->update(['status' => 'completed']);

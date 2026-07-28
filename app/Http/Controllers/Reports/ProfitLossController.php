@@ -71,7 +71,7 @@ class ProfitLossController extends Controller
             ->where('status', 'approved')
             ->get();
         $totalRevenue = $sales->sum('total_price');
-        $totalCogs = $sales->sum('total_cost');
+        $totalCogs = SaleItem::whereIn('sale_id', $sales->pluck('id'))->sum('total_cost');
         $grossProfit = $totalRevenue - $totalCogs;
 
         // Fuel Costs

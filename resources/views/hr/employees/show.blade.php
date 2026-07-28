@@ -67,7 +67,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    @foreach($employee->payrollItems->sortByDesc('period') as $item)
+                    @foreach($employee->payrollItems->sortByDesc(fn($item) => $item->period->period_year * 100 + $item->period->period_month) as $item)
                         <tr>
                             <td class="px-3 py-2">{{ $item->period->period_name }}</td>
                             <td class="px-3 py-2 text-right">{{ number_format($item->basic_salary, 2) }}</td>

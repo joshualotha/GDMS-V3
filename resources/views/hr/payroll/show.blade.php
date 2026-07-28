@@ -18,6 +18,10 @@
                 @csrf
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Mark as Paid</button>
             </form>
+            <form action="{{ route('payroll.unapprove', $period) }}" method="POST" onsubmit="return confirm('Revert this payroll period back to draft? You will be able to edit allowances/deductions again.')">
+                @csrf
+                <button type="submit" class="bg-yellow-100 text-yellow-800 border border-yellow-400 px-4 py-2 rounded hover:bg-yellow-200">Revert to Draft</button>
+            </form>
         @endif
     </div>
     <div class="text-right">
@@ -44,6 +48,24 @@
 
 @if($period->status == 'draft')
     <p class="text-sm text-gray-600 mb-4">Edit allowances and deductions below, then click Save. Changes will update automatically.</p>
+
+    @if($availableEmployees->isNotEmpty())
+        <div class="bg-white rounded-lg shadow p-4 mb-6 flex items-end gap-3">
+            <form action="{{ route('payroll.addEmployee', $period) }}" method="POST" class="flex items-end gap-3">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Add an employee to this period</label>
+                    <select name="employee_id" required class="form-select" style="width: auto; min-width: 240px;">
+                        <option value="">Select Employee</option>
+                        @foreach($availableEmployees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->full_name }} ({{ $emp->employee_number }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Add</button>
+            </form>
+        </div>
+    @endif
 @endif
 
 <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
@@ -77,10 +99,10 @@
                     <form action="{{ route('payroll.item.update', $item) }}" method="POST" class="flex gap-1">
                         @csrf
                         @method('PUT')
-                        <td class="px-2 py-2"><input type="number" name="allowances" step="0.01" value="{{ $item->allowances }}" class="w-24 border rounded px-2 py-1 text-right"></td>
-                        <td class="px-2 py-2"><input type="text" name="allowance_note" value="{{ $item->allowance_note }}" placeholder="Note" class="w-28 border rounded px-2 py-1"></td>
-                        <td class="px-2 py-2"><input type="number" name="deductions" step="0.01" value="{{ $item->deductions }}" class="w-24 border rounded px-2 py-1 text-right"></td>
-                        <td class="px-2 py-2"><input type="text" name="deduction_note" value="{{ $item->deduction_note }}" placeholder="Note" class="w-28 border rounded px-2 py-1"></td>
+                        <td class="px-2 py-2"><input type="number" name="allowances" step="0.01" value="{{ $item->allowances }}" class="w-24 form-input-sm text-right"></td>
+                        <td class="px-2 py-2"><input type="text" name="allowance_note" value="{{ $item->allowance_note }}" placeholder="Note" class="w-28 form-input-sm"></td>
+                        <td class="px-2 py-2"><input type="number" name="deductions" step="0.01" value="{{ $item->deductions }}" class="w-24 form-input-sm text-right"></td>
+                        <td class="px-2 py-2"><input type="text" name="deduction_note" value="{{ $item->deduction_note }}" placeholder="Note" class="w-28 form-input-sm"></td>
                         <td class="px-4 py-4 text-right font-semibold">{{ number_format($item->net_pay, 2) }}</td>
                         <td class="px-2 py-2"><button type="submit" class="text-indigo-600 hover:underline">Save</button></td>
                     </form>

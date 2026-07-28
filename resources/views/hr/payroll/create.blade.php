@@ -10,7 +10,7 @@
     
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700">Period Month *</label>
-        <select name="period_month" required class="mt-1 w-full border rounded px-3 py-2">
+        <select name="period_month" required class="mt-1 form-select">
             <option value="">Select Month</option>
             @for($m = 1; $m <= 12; $m++)
                 <option value="{{ $m }}">{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
@@ -20,7 +20,7 @@
 
     <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700">Period Year *</label>
-        <select name="period_year" required class="mt-1 w-full border rounded px-3 py-2">
+        <select name="period_year" required class="mt-1 form-select">
             <option value="">Select Year</option>
             @for($y = date('Y'); $y >= date('Y') - 5; $y--)
                 <option value="{{ $y }}">{{ $y }}</option>

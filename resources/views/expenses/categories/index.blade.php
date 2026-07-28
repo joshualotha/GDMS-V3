@@ -63,12 +63,12 @@
         
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Name *</label>
-            <input type="text" name="name" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="name" required class="mt-1 form-input">
         </div>
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea name="description" class="mt-1 w-full border rounded px-3 py-2"></textarea>
+            <textarea name="description" class="mt-1 form-input"></textarea>
         </div>
 
         <div class="flex justify-end gap-2">
@@ -87,12 +87,12 @@
         
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Name *</label>
-            <input type="text" name="name" value="{{ $category->name }}" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="name" value="{{ $category->name }}" required class="mt-1 form-input">
         </div>
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea name="description" class="mt-1 w-full border rounded px-3 py-2">{{ $category->description }}</textarea>
+            <textarea name="description" class="mt-1 form-input">{{ $category->description }}</textarea>
         </div>
 
         <div class="flex justify-end gap-2">

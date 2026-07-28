@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Models\CylinderType;
-use App\Models\OpeningStockItem;
 use App\Models\Outlet;
 use App\Models\Sale;
+use App\Models\StockOutlet;
 use App\Services\SaleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -53,7 +53,7 @@ class SaleController extends Controller
 
         $outletStock = [];
         foreach ($outlets as $outlet) {
-            $outletStock[$outlet->id] = OpeningStockItem::whereHas('openingStock', fn ($q) => $q->where('outlet_id', $outlet->id))
+            $outletStock[$outlet->id] = StockOutlet::where('outlet_id', $outlet->id)
                 ->pluck('full_qty', 'cylinder_type_id')
                 ->toArray();
         }
@@ -71,18 +71,31 @@ class SaleController extends Controller
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',
             'items.*.sale_type' => 'required|in:full,refill',
             'items.*.quantity' => 'required|integer|min:1',
+            'cash_submitted' => 'nullable|numeric|min:0',
+            'cash_receipt_image' => 'nullable|file|image',
         ]);
+
+        $receiptPath = null;
+        if ($request->hasFile('cash_receipt_image')) {
+            $receiptPath = $request->file('cash_receipt_image')->store('receipts', 'public');
+        }
 
         try {
             $sale = $this->saleService->createSale(
                 $validated['outlet_id'],
                 $validated['sale_date'],
                 $validated['items'],
-                $validated['notes'] ?? null
+                $validated['notes'] ?? null,
+                isset($validated['cash_submitted']) ? (float) $validated['cash_submitted'] : null,
+                $receiptPath,
+                auth()->id()
             );
 
-            return redirect()->route('sales.index')
-                ->with('success', 'Sale recorded successfully.');
+            $message = isset($validated['cash_submitted'])
+                ? 'Sale recorded and verified.'
+                : 'Sale recorded. Add the deposit amount once you have it.';
+
+            return redirect()->route('sales.index')->with('success', $message);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -97,7 +110,7 @@ class SaleController extends Controller
 
     public function getOutletStock(Outlet $outlet): JsonResponse
     {
-        $stock = OpeningStockItem::whereHas('openingStock', fn ($q) => $q->where('outlet_id', $outlet->id))
+        $stock = StockOutlet::where('outlet_id', $outlet->id)
             ->pluck('full_qty', 'cylinder_type_id')
             ->toArray();
 
@@ -106,6 +119,10 @@ class SaleController extends Controller
 
     public function submitCash(Request $request, Sale $sale)
     {
+        if (! in_array($sale->status, ['pending', 'queried'])) {
+            return back()->with('error', 'Cash can only be submitted for a pending or queried sale.');
+        }
+
         $validated = $request->validate([
             'cash_submitted' => 'required|numeric|min:0',
             'cash_receipt_image' => 'nullable|file|image',

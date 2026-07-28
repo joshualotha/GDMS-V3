@@ -41,10 +41,16 @@ class EmptyReturnService
                     'quantity' => $item['quantity'],
                 ]);
 
-                $stockOutlet = StockOutlet::where('outlet_id', $outletId)
-                    ->where('cylinder_type_id', $item['cylinder_type_id'])
-                    ->first();
-                $stockOutlet->decrement('empty_qty', $item['quantity']);
+                $stockService->updateOutletStock(
+                    $outletId,
+                    $item['cylinder_type_id'],
+                    0,
+                    -$item['quantity'],
+                    'empty_return_out',
+                    'EmptyReturn',
+                    $return->id,
+                    "Empty return to main store"
+                );
 
                 $stockService->updateMainStock(
                     $item['cylinder_type_id'],

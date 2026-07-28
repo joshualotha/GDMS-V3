@@ -85,6 +85,7 @@ class StockReportController extends Controller
 
         if ($date->lt(now())) {
             $ledger = StockMainLedger::where('cylinder_type_id', $cylinderTypeId)
+                ->whereNull('outlet_id')
                 ->where('created_at', '<=', $date)
                 ->orderBy('created_at', 'desc')
                 ->first();
@@ -104,8 +105,7 @@ class StockReportController extends Controller
             ->where('cylinder_type_id', $cylinderTypeId);
 
         if ($date->lt(now())) {
-            $ledger = StockMainLedger::where('reference_type', 'StockOutlet')
-                ->where('reference_id', $outletId)
+            $ledger = StockMainLedger::where('outlet_id', $outletId)
                 ->where('cylinder_type_id', $cylinderTypeId)
                 ->where('created_at', '<=', $date)
                 ->orderBy('created_at', 'desc')

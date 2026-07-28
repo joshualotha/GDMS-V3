@@ -9,15 +9,18 @@ use App\Models\StockMain;
 use App\Models\StockOutlet;
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\CashSubmission;
 use App\Models\CompanyAsset;
 use App\Models\StockTransfer;
 use App\Models\GoodsReceived;
-use App\Models\MaintenanceLog;
 use App\Models\FuelStock;
-use App\Models\PurchaseOrder;
 use App\Models\Expense;
 use App\Models\PayrollPeriod;
+use App\Models\Supplier;
+use App\Models\OpeningStock;
+use App\Models\AssetCategory;
+use App\Models\ExpenseCategory;
+use App\Models\Employee;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -43,11 +46,11 @@ class DashboardController extends Controller
         $totalFullCylinders = $mainStoreStock->sum('full_qty');
         $totalEmptyCylinders = $mainStoreStock->sum('empty_qty');
 
-        $pendingApprovals = Sale::where('status', 'pending')->count() 
-            + CashSubmission::where('status', 'pending')->count();
+        $pendingApprovals = Sale::whereIn('status', ['pending', 'queried'])->count();
 
-        $cashPendingReconciliation = CashSubmission::where('status', 'pending')
-            ->sum('submitted_amount');
+        $cashPendingReconciliation = Sale::where('status', 'pending')
+            ->whereNotNull('cash_submitted')
+            ->sum('cash_submitted');
 
         $activeAssets = CompanyAsset::where('status', 'active')->count();
 
@@ -62,8 +65,9 @@ class DashboardController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->first();
 
-            $pendingSubmission = CashSubmission::whereHas('sale', fn($q) => $q->where('outlet_id', $outlet->id))
+            $pendingSubmission = Sale::where('outlet_id', $outlet->id)
                 ->where('status', 'pending')
+                ->whereNotNull('cash_submitted')
                 ->exists();
 
             $outletStockSummary[] = [
@@ -118,29 +122,17 @@ class DashboardController extends Controller
             }
         }
 
-        $sevenDaysFromNow = now()->addDays(7);
-        $maintenanceDue = MaintenanceLog::where('next_service_date', '<=', $sevenDaysFromNow)
-            ->whereHas('asset', fn($q) => $q->where('status', 'active'))
-            ->with('asset')
-            ->get();
-        
-        foreach ($maintenanceDue as $log) {
-            $alerts[] = [
-                'type' => 'warning',
-                'message' => "Asset '{$log->asset->name}' service due on " . $log->next_service_date->format('d M Y')
-            ];
-        }
 
-        $varianceSubmissions = CashSubmission::where('status', 'reconciled')
-            ->where('variance', '!=', 0)
-            ->orderBy('created_at', 'desc')
+        $varianceSales = Sale::where('status', 'approved')
+            ->where('cash_variance', '!=', 0)
+            ->orderBy('cash_submitted_date', 'desc')
             ->limit(5)
             ->get();
 
-        foreach ($varianceSubmissions as $sub) {
+        foreach ($varianceSales as $sale) {
             $alerts[] = [
                 'type' => 'orange',
-                'message' => "Cash submission CS-{$sub->submission_number} has variance of " . number_format($sub->variance, 2)
+                'message' => "Sale {$sale->sale_number} has a cash variance of " . number_format($sale->cash_variance, 2)
             ];
         }
 
@@ -181,27 +173,6 @@ class DashboardController extends Controller
             ->take(10)
             ->values();
 
-        // NEW: Sales Metrics
-        $todayStart = now()->startOfDay();
-        $weekStart = now()->startOfWeek();
-        $monthStart = now()->startOfMonth();
-
-        $salesTodayCount = Sale::where('status', 'approved')
-            ->where('sale_date', '>=', $todayStart->toDateString())
-            ->count();
-        
-        $salesTodayAmount = Sale::where('status', 'approved')
-            ->where('sale_date', '>=', $todayStart->toDateString())
-            ->sum('total_price');
-
-        $salesWeekAmount = Sale::where('status', 'approved')
-            ->where('sale_date', '>=', $weekStart->toDateString())
-            ->sum('total_price');
-
-        $salesMonthAmount = Sale::where('status', 'approved')
-            ->where('sale_date', '>=', $monthStart->toDateString())
-            ->sum('total_price');
-
         // Period-based sales metrics (using sale_date)
         $periodSalesCount = Sale::where('status', 'approved')
             ->whereBetween('sale_date', [$startDate->toDateString(), $endDate->toDateString()])
@@ -219,25 +190,9 @@ class DashboardController extends Controller
             return [ucfirst($stock->fuel_type) => $stock->litres];
         });
 
-        // NEW: Pending Tasks
-        $pendingPOs = PurchaseOrder::where('status', 'pending')->count();
-        $pendingGRNs = GoodsReceived::where('status', 'pending')->count();
-
-        // NEW: Expenses this month
-        $expensesMonth = Expense::where('created_at', '>=', $monthStart)->sum('amount');
-
         // Profit calculation
         $periodProfit = $periodSalesAmount - $periodExpenses;
         $profitMargin = $periodSalesAmount > 0 ? round(($periodProfit / $periodSalesAmount) * 100, 1) : 0;
-
-        // This month's profit (always current month)
-        $thisMonthStart = now()->startOfMonth();
-        $thisMonthSales = Sale::where('status', 'approved')
-            ->where('sale_date', '>=', $thisMonthStart->toDateString())
-            ->sum('total_price');
-        $thisMonthExpenses = Expense::where('created_at', '>=', $thisMonthStart)->sum('amount');
-        $monthProfit = $thisMonthSales - $thisMonthExpenses;
-        $monthProfitMargin = $thisMonthSales > 0 ? round(($monthProfit / $thisMonthSales) * 100, 1) : 0;
 
         // NEW: Payroll Summary
         $lastPayrollPeriod = PayrollPeriod::whereIn('status', ['approved', 'paid'])
@@ -272,6 +227,8 @@ class DashboardController extends Controller
             'outlet_empty' => StockOutlet::sum('empty_qty'),
         ];
 
+        $setupChecklist = $this->buildSetupChecklist();
+
         return view('dashboard.index', compact(
             'totalFullCylinders',
             'totalEmptyCylinders',
@@ -282,21 +239,13 @@ class DashboardController extends Controller
             'outletStockSummary',
             'alerts',
             'recentActivity',
-            'salesTodayCount',
-            'salesTodayAmount',
-            'salesWeekAmount',
-            'salesMonthAmount',
             'fuelStocks',
-            'pendingPOs',
-            'pendingGRNs',
-            'expensesMonth',
+            'setupChecklist',
             'periodExpenses',
             'periodSalesCount',
             'periodSalesAmount',
             'periodProfit',
             'profitMargin',
-            'monthProfit',
-            'monthProfitMargin',
             'lastPayrollTotal',
             'lastPayrollName',
             'topProducts',
@@ -306,6 +255,36 @@ class DashboardController extends Controller
             'startDate',
             'endDate'
         ));
+    }
+
+    /**
+     * Setup items a new business should fill in before relying on the system day to day.
+     * "required" items hide the whole checklist once complete; "optional" ones stay
+     * listed (so the manager knows they exist) but don't block the checklist from disappearing.
+     */
+    protected function buildSetupChecklist(): array
+    {
+        $businessNameSet = trim((string) Setting::get('business_name', '')) !== '';
+
+        $items = [
+            ['label' => 'Cylinder Types', 'desc' => 'Sizes, full-sale and refill prices', 'done' => CylinderType::count() > 0, 'url' => url('settings/cylinder-types'), 'required' => true],
+            ['label' => 'Outlets', 'desc' => 'Physical locations and vehicles that sell', 'done' => Outlet::count() > 0, 'url' => url('settings/outlets'), 'required' => true],
+            ['label' => 'Suppliers', 'desc' => 'Who you buy cylinders and fuel from', 'done' => Supplier::count() > 0, 'url' => url('settings/suppliers'), 'required' => true],
+            ['label' => 'Opening Stock', 'desc' => 'Starting cylinder counts for warehouse and outlets', 'done' => OpeningStock::count() > 0, 'url' => url('warehouse/opening-stock'), 'required' => true],
+            ['label' => 'General Settings', 'desc' => 'Business name, currency, financial year', 'done' => $businessNameSet, 'url' => url('settings/general'), 'required' => true],
+            ['label' => 'Asset Categories', 'desc' => 'Only needed if you track vehicles/equipment', 'done' => AssetCategory::count() > 0, 'url' => url('settings/asset-categories'), 'required' => false],
+            ['label' => 'Expense Categories', 'desc' => 'Only needed if you record expenses', 'done' => ExpenseCategory::count() > 0, 'url' => url('settings/expense-categories'), 'required' => false],
+            ['label' => 'Employees', 'desc' => 'Only needed if you run payroll', 'done' => Employee::count() > 0, 'url' => url('hr/employees'), 'required' => false],
+            ['label' => 'Company Assets', 'desc' => 'Vehicles/equipment you already own', 'done' => CompanyAsset::count() > 0, 'url' => url('assets'), 'required' => false],
+            ['label' => 'Fuel Stock', 'desc' => 'Only needed if you track vehicle fuel', 'done' => FuelStock::sum('litres') > 0, 'url' => url('fuel/purchases'), 'required' => false],
+        ];
+
+        $requiredIncomplete = collect($items)->where('required', true)->where('done', false)->count();
+
+        return [
+            'items' => $items,
+            'visible' => $requiredIncomplete > 0,
+        ];
     }
 
     protected function getDateRange(string $period): array

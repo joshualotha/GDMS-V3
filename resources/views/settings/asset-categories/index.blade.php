@@ -72,17 +72,17 @@
         
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Name *</label>
-            <input type="text" name="name" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="name" required class="mt-1 form-input">
         </div>
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea name="description" class="mt-1 w-full border rounded px-3 py-2"></textarea>
+            <textarea name="description" class="mt-1 form-input"></textarea>
         </div>
 
         <div class="mb-4">
             <label class="flex items-center">
-                <input type="checkbox" name="is_depreciable" class="mr-2" onchange="toggleDepreciationFields()">
+                <input type="checkbox" name="is_depreciable" value="1" class="mr-2" onchange="toggleDepreciationFields()">
                 <span class="text-sm">Depreciable Asset</span>
             </label>
         </div>
@@ -90,12 +90,12 @@
         <div id="depreciationFields" class="hidden">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Depreciation Rate (%)</label>
-                <input type="number" name="default_depreciation_rate" step="0.01" class="mt-1 w-full border rounded px-3 py-2">
+                <input type="number" name="default_depreciation_rate" step="0.01" class="mt-1 form-input">
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Useful Life (Years)</label>
-                <input type="number" name="useful_life_years" class="mt-1 w-full border rounded px-3 py-2">
+                <input type="number" name="useful_life_years" class="mt-1 form-input">
             </div>
         </div>
 
@@ -115,17 +115,17 @@
         
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Name *</label>
-            <input type="text" name="name" value="{{ $category->name }}" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="name" value="{{ $category->name }}" required class="mt-1 form-input">
         </div>
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea name="description" class="mt-1 w-full border rounded px-3 py-2">{{ $category->description }}</textarea>
+            <textarea name="description" class="mt-1 form-input">{{ $category->description }}</textarea>
         </div>
 
         <div class="mb-4">
             <label class="flex items-center">
-                <input type="checkbox" name="is_depreciable" class="mr-2" {{ $category->is_depreciable ? 'checked' : '' }} onchange="toggleEditDepreciationFields({{ $category->id }})">
+                <input type="checkbox" name="is_depreciable" value="1" class="mr-2" {{ $category->is_depreciable ? 'checked' : '' }} onchange="toggleEditDepreciationFields({{ $category->id }})">
                 <span class="text-sm">Depreciable Asset</span>
             </label>
         </div>
@@ -133,18 +133,18 @@
         <div id="editDepreciationFields{{ $category->id }}" class="{{ $category->is_depreciable ? '' : 'hidden' }}">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Depreciation Rate (%)</label>
-                <input type="number" name="default_depreciation_rate" step="0.01" value="{{ $category->default_depreciation_rate }}" class="mt-1 w-full border rounded px-3 py-2">
+                <input type="number" name="default_depreciation_rate" step="0.01" value="{{ $category->default_depreciation_rate }}" class="mt-1 form-input">
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Useful Life (Years)</label>
-                <input type="number" name="useful_life_years" value="{{ $category->useful_life_years }}" class="mt-1 w-full border rounded px-3 py-2">
+                <input type="number" name="useful_life_years" value="{{ $category->useful_life_years }}" class="mt-1 form-input">
             </div>
         </div>
 
         <div class="mb-4">
             <label class="flex items-center">
-                <input type="checkbox" name="is_active" class="mr-2" {{ $category->is_active ? 'checked' : '' }}>
+                <input type="checkbox" name="is_active" value="1" class="mr-2" {{ $category->is_active ? 'checked' : '' }}>
                 <span class="text-sm">Active</span>
             </label>
         </div>

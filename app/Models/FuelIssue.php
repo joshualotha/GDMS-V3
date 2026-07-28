@@ -9,7 +9,7 @@ class FuelIssue extends Model
 {
     protected $fillable = [
         'date',
-        'asset_id',
+        'outlet_id',
         'fuel_type',
         'litres',
         'odometer_km',
@@ -21,8 +21,8 @@ class FuelIssue extends Model
         'litres' => 'decimal:2',
     ];
 
-    public function asset(): BelongsTo
+    public function outlet(): BelongsTo
     {
-        return $this->belongsTo(FuelAsset::class);
+        return $this->belongsTo(Outlet::class);
     }
 }

@@ -11,24 +11,27 @@
     <div>
         <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
         <input type="date" name="date" id="date" value="{{ date('Y-m-d') }}" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-input">
     </div>
 
     <div>
-        <label for="asset_id" class="block text-sm font-medium text-gray-700">Vehicle (Car)</label>
-        <select name="asset_id" id="asset_id" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <label for="outlet_id" class="block text-sm font-medium text-gray-700">Vehicle (Car)</label>
+        <select name="outlet_id" id="outlet_id" required
+            class="mt-1 form-select">
             <option value="">Select Vehicle</option>
-            @foreach($assets as $asset)
-                <option value="{{ $asset->id }}">{{ $asset->name }} ({{ $asset->plate_number }})</option>
+            @foreach($outlets as $outlet)
+                <option value="{{ $outlet->id }}">{{ $outlet->name }} ({{ $outlet->plate_number ?? 'no plate' }})</option>
             @endforeach
         </select>
+        @if($outlets->isEmpty())
+            <p class="text-xs text-red-600 mt-1">No car outlets found. <a href="{{ route('outlets.create') }}" class="underline">Add one first</a>.</p>
+        @endif
     </div>
 
     <div>
         <label for="fuel_type" class="block text-sm font-medium text-gray-700">Fuel Type</label>
         <select name="fuel_type" id="fuel_type" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-select">
             <option value="">Select</option>
             <option value="diesel">Diesel</option>
             <option value="petrol">Petrol</option>
@@ -39,19 +42,19 @@
         <div>
             <label for="litres" class="block text-sm font-medium text-gray-700">Litres</label>
             <input type="number" name="litres" id="litres" step="0.01" min="0.01" required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                class="mt-1 form-input">
         </div>
         <div>
             <label for="odometer_km" class="block text-sm font-medium text-gray-700">Odometer (km)</label>
             <input type="number" name="odometer_km" id="odometer_km"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                class="mt-1 form-input">
         </div>
     </div>
 
     <div>
         <label for="issued_by" class="block text-sm font-medium text-gray-700">Issued By</label>
         <input type="text" name="issued_by" id="issued_by"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-input">
     </div>
 
     <div class="flex justify-end gap-4">

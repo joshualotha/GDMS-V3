@@ -22,6 +22,7 @@
     <div class="card-header">
         <h3>Main Warehouse Stock</h3>
     </div>
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -47,6 +48,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 </div>
 
 @foreach($outlets as $outlet)
@@ -54,6 +56,7 @@
     <div class="card-header">
         <h3>{{ $outlet->name }} ({{ ucfirst($outlet->type) }})</h3>
     </div>
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -79,6 +82,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 </div>
 @endforeach
 @endsection

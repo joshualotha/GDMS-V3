@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\PayrollPeriod;
 use App\Services\PayrollService;
 use Illuminate\Http\Request;
@@ -52,7 +53,13 @@ class PayrollPeriodController extends Controller
     public function show(PayrollPeriod $period)
     {
         $period->load('items.employee');
-        return view('hr.payroll.show', compact('period'));
+
+        $availableEmployees = Employee::where('status', 'active')
+            ->whereNotIn('id', $period->items->pluck('employee_id'))
+            ->orderBy('first_name')
+            ->get();
+
+        return view('hr.payroll.show', compact('period', 'availableEmployees'));
     }
 
     public function approve(Request $request, PayrollPeriod $period)
@@ -67,12 +74,41 @@ class PayrollPeriodController extends Controller
         }
     }
 
+    public function unapprove(Request $request, PayrollPeriod $period)
+    {
+        try {
+            $this->payrollService->unapprovePeriod($period);
+            return redirect()->back()
+                ->with('success', 'Payroll period reverted to draft.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
     public function markPaid(Request $request, PayrollPeriod $period)
     {
         try {
             $this->payrollService->markAsPaid($period);
             return redirect()->back()
                 ->with('success', 'Payroll period marked as paid.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function addEmployee(Request $request, PayrollPeriod $period)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+        ]);
+
+        try {
+            $employee = Employee::findOrFail($validated['employee_id']);
+            $this->payrollService->addEmployeeToPeriod($period, $employee);
+            return redirect()->back()
+                ->with('success', 'Employee added to payroll period.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', $e->getMessage());

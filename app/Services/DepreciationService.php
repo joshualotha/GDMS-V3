@@ -55,7 +55,9 @@ class DepreciationService
                 $newAccumulated = $asset->purchase_cost;
             }
 
-            DB::transaction(function () use ($asset, $depreciationAmount, $newBookValue, $newAccumulated) {
+            $bookValueBefore = $asset->current_book_value;
+
+            DB::transaction(function () use ($asset, $depreciationAmount, $newBookValue, $newAccumulated, $bookValueBefore) {
                 $asset->update([
                     'accumulated_depreciation' => $newAccumulated,
                     'current_book_value' => $newBookValue,
@@ -66,7 +68,7 @@ class DepreciationService
                     'period_start' => now()->startOfMonth()->toDateString(),
                     'period_end' => now()->endOfMonth()->toDateString(),
                     'depreciation_amount' => $depreciationAmount,
-                    'book_value_before' => $asset->getOriginal('current_book_value'),
+                    'book_value_before' => $bookValueBefore,
                     'depreciation_rate' => $asset->depreciation_rate,
                     'book_value_after' => $newBookValue,
                     'run_by' => auth()->user()->name ?? 'System',

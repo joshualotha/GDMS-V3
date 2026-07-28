@@ -34,7 +34,7 @@
                     <td class="px-6 py-4 text-right">{{ number_format($purchase->litres, 2) }}</td>
                     <td class="px-6 py-4 text-right">{{ number_format($purchase->unit_cost, 2) }}</td>
                     <td class="px-6 py-4 text-right">{{ number_format($purchase->total_cost, 2) }}</td>
-                    <td class="px-6 py-4">{{ $purchase->supplier ?? '-' }}</td>
+                    <td class="px-6 py-4">{{ $purchase->supplierAccount->name ?? $purchase->supplier ?? '-' }}</td>
                 </tr>
             @empty
                 <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No purchases found.</td></tr>

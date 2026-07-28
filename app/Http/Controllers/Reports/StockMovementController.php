@@ -16,7 +16,7 @@ class StockMovementController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : Carbon::now()->endOfDay();
 
-        $query = StockMainLedger::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = StockMainLedger::whereNull('outlet_id')->whereBetween('created_at', [$dateFrom, $dateTo]);
 
         if ($request->transaction_type) {
             $query->where('transaction_type', $request->transaction_type);
@@ -44,7 +44,7 @@ class StockMovementController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : Carbon::now()->endOfDay();
 
-        $query = StockMainLedger::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = StockMainLedger::whereNull('outlet_id')->whereBetween('created_at', [$dateFrom, $dateTo]);
 
         if ($request->transaction_type) {
             $query->where('transaction_type', $request->transaction_type);

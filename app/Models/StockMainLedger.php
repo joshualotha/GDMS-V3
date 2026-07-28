@@ -11,6 +11,7 @@ class StockMainLedger extends Model
 
     protected $fillable = [
         'cylinder_type_id',
+        'outlet_id',
         'full_qty_change',
         'empty_qty_change',
         'full_qty_after',

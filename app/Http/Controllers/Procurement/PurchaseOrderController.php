@@ -9,6 +9,7 @@ use App\Models\CylinderType;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
@@ -34,30 +35,32 @@ class PurchaseOrderController extends Controller
     {
         $validated = $request->validated();
 
-        $po = PurchaseOrder::create([
-            'po_number' => ReferenceGenerator::generatePoNumber(),
-            'supplier_id' => $validated['supplier_id'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        $totalCost = 0;
-        foreach ($validated['items'] as $item) {
-            $lineTotal = $item['quantity'] * $item['unit_cost'];
-            PurchaseOrderItem::create([
-                'purchase_order_id' => $po->id,
-                'cylinder_type_id' => $item['cylinder_type_id'],
-                'purchase_type' => $item['purchase_type'],
-                'quantity' => $item['quantity'],
-                'unit_cost' => $item['unit_cost'],
-                'line_total' => $lineTotal,
+        return DB::transaction(function () use ($validated) {
+            $po = PurchaseOrder::create([
+                'po_number' => ReferenceGenerator::generatePoNumber(),
+                'supplier_id' => $validated['supplier_id'],
+                'notes' => $validated['notes'] ?? null,
             ]);
-            $totalCost += $lineTotal;
-        }
 
-        $po->update(['total_cost' => $totalCost]);
+            $totalCost = 0;
+            foreach ($validated['items'] as $item) {
+                $lineTotal = $item['quantity'] * $item['unit_cost'];
+                PurchaseOrderItem::create([
+                    'purchase_order_id' => $po->id,
+                    'cylinder_type_id' => $item['cylinder_type_id'],
+                    'purchase_type' => $item['purchase_type'],
+                    'quantity' => $item['quantity'],
+                    'unit_cost' => $item['unit_cost'],
+                    'line_total' => $lineTotal,
+                ]);
+                $totalCost += $lineTotal;
+            }
 
-        return redirect()->route('purchase-orders.index')
-            ->with('success', 'Purchase order created successfully.');
+            $po->update(['total_cost' => $totalCost]);
+
+            return redirect()->route('purchase-orders.index')
+                ->with('success', 'Purchase order created successfully.');
+        });
     }
 
     public function show(PurchaseOrder $purchaseOrder)

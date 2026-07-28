@@ -11,7 +11,7 @@
     <div>
         <label for="outlet_id" class="block text-sm font-medium text-gray-700">Outlet / Warehouse</label>
         <select name="outlet_id" id="outlet_id" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-select">
             <option value="">Select Outlet</option>
             <option value="main">Main Warehouse</option>
             @foreach($outlets as $outlet)
@@ -24,7 +24,7 @@
     <div>
         <label for="cylinder_type_id" class="block text-sm font-medium text-gray-700">Cylinder Type</label>
         <select name="cylinder_type_id" id="cylinder_type_id" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50">
+            class="mt-1 form-select bg-gray-50">
             <option value="">Select outlet first</option>
         </select>
     </div>
@@ -36,7 +36,7 @@
     <div>
         <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
         <select name="type" id="type" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-select">
             <option value="gain">Gain / Correction (+)</option>
             <option value="loss">Loss / Damage (-)</option>
         </select>
@@ -46,19 +46,19 @@
         <div>
             <label for="full_qty_change" class="block text-sm font-medium text-gray-700">Full Qty Change</label>
             <input type="number" name="full_qty_change" id="full_qty_change" value="0"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" readonly>
+                class="mt-1 form-input bg-gray-50" readonly>
         </div>
         <div>
             <label for="empty_qty_change" class="block text-sm font-medium text-gray-700">Empty Qty Change</label>
             <input type="number" name="empty_qty_change" id="empty_qty_change" value="0"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" readonly>
+                class="mt-1 form-input bg-gray-50" readonly>
         </div>
     </div>
 
     <div>
         <label for="reason" class="block text-sm font-medium text-gray-700">Reason</label>
         <textarea name="reason" id="reason" rows="2" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" readonly></textarea>
+            class="mt-1 form-input bg-gray-50" readonly></textarea>
     </div>
 
     <div class="flex justify-end gap-4">

@@ -12,7 +12,7 @@
     <div>
         <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
         <input type="text" name="name" id="name" value="{{ old('name', $outlet->name) }}" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-input">
         @error('name')
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
@@ -21,7 +21,7 @@
     <div>
         <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
         <select name="type" id="type" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-select">
             <option value="car" {{ $outlet->type == 'car' ? 'selected' : '' }}>Car</option>
             <option value="physical" {{ $outlet->type == 'physical' ? 'selected' : '' }}>Physical Store</option>
         </select>
@@ -32,8 +32,8 @@
 
     <div>
         <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
-        <input type="text" name="location" id="location" value="{{ old('location', $outlet->location) }}" required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <input type="text" name="location" id="location" value="{{ old('location', $outlet->location) }}"
+            class="mt-1 form-input">
         @error('location')
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror
@@ -42,7 +42,7 @@
     <div>
         <label for="plate_number" class="block text-sm font-medium text-gray-700">Plate Number (for cars)</label>
         <input type="text" name="plate_number" id="plate_number" value="{{ old('plate_number', $outlet->plate_number) }}"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            class="mt-1 form-input">
         @error('plate_number')
             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
         @enderror

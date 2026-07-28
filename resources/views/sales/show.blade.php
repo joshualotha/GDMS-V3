@@ -9,9 +9,22 @@
     <div class="grid grid-cols-2 gap-6">
         <div><p class="text-sm text-gray-500">Outlet</p><p class="font-medium">{{ $sale->outlet->name }}</p></div>
         <div><p class="text-sm text-gray-500">Date</p><p class="font-medium">{{ $sale->sale_date->format('d/m/Y') }}</p></div>
-        <div><p class="text-sm text-gray-500">Status</p><p class="font-medium">{{ ucfirst($sale->status) }}</p></div>
+        <div>
+            <p class="text-sm text-gray-500">Status</p>
+            <p class="font-medium">
+                <span class="px-2 py-1 text-xs rounded
+                    {{ $sale->status == 'approved' ? 'bg-green-100 text-green-800' : '' }}
+                    {{ $sale->status == 'pending' ? 'bg-orange-100 text-orange-800' : '' }}
+                    {{ $sale->status == 'queried' ? 'bg-red-100 text-red-800' : '' }}">
+                    {{ ucfirst($sale->status) }}
+                </span>
+            </p>
+        </div>
         <div><p class="text-sm text-gray-500">Expected Cash</p><p class="font-bold text-lg">{{ number_format($sale->total_price, 2) }}</p></div>
     </div>
+    @if($sale->status == 'queried' && $sale->notes)
+        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800" style="white-space: pre-line;">{{ $sale->notes }}</div>
+    @endif
 </div>
 
 <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -48,13 +61,69 @@
     </table>
 </div>
 
-<div class="mt-6 flex justify-between">
-    <a href="{{ url('sales') }}" class="btn btn-secondary">Back</a>
-    @if($sale->status == 'pending')
-        <form action="{{ url('approvals/sales/' . $sale->id . '/approve') }}" method="POST">
-            @csrf
-            <button type="submit" class="btn btn-primary">Approve & Verify</button>
-        </form>
+<div class="bg-white rounded-lg shadow p-6 mt-6">
+    <h3 class="text-lg font-semibold mb-4">Cash Verification</h3>
+
+    @if($sale->cash_submitted === null)
+        {{-- Step 1: no cash recorded yet --}}
+        @if(in_array($sale->status, ['pending', 'queried']))
+            <form action="{{ url('sales/' . $sale->id . '/submit-cash') }}" method="POST" enctype="multipart/form-data" class="max-w-sm">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Cash Collected *</label>
+                    <input type="number" name="cash_submitted" step="0.01" min="0" required class="mt-1 form-input">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Receipt Photo (optional)</label>
+                    <input type="file" name="cash_receipt_image" accept="image/*" class="mt-1 w-full">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Cash</button>
+            </form>
+        @else
+            <p class="text-gray-500">No cash was recorded for this sale.</p>
+        @endif
+    @else
+        {{-- Step 2: cash recorded, show it plus variance --}}
+        <div class="grid grid-cols-3 gap-6 mb-4">
+            <div><p class="text-sm text-gray-500">Cash Submitted</p><p class="font-bold text-lg">{{ number_format($sale->cash_submitted, 2) }}</p></div>
+            <div>
+                <p class="text-sm text-gray-500">Variance</p>
+                <p class="font-bold text-lg {{ $sale->cash_variance >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($sale->cash_variance, 2) }}</p>
+            </div>
+            <div><p class="text-sm text-gray-500">Submitted On</p><p class="font-medium">{{ $sale->cash_submitted_date?->format('d/m/Y') }}</p></div>
+        </div>
+        @if($sale->cash_receipt_image)
+            <a href="{{ asset('storage/' . $sale->cash_receipt_image) }}" target="_blank" class="text-indigo-600 hover:underline text-sm">View receipt photo</a>
+        @endif
     @endif
 </div>
+
+<div class="mt-6 flex justify-between">
+    <a href="{{ url('sales') }}" class="btn btn-secondary">Back</a>
+    <div class="flex gap-2">
+        @if($sale->status == 'approved')
+            <button type="button" onclick="document.getElementById('querySale').showModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Flag This Sale</button>
+        @elseif(in_array($sale->status, ['pending', 'queried']) && $sale->cash_submitted !== null)
+            @if($sale->status == 'pending')
+                <button type="button" onclick="document.getElementById('querySale').showModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Query</button>
+            @endif
+            <form action="{{ url('approvals/sales/' . $sale->id . '/approve') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-primary">{{ $sale->status == 'queried' ? 'Resolve & Approve' : 'Approve & Verify' }}</button>
+            </form>
+        @endif
+    </div>
+</div>
+
+<dialog id="querySale" class="rounded shadow-lg p-6">
+    <form action="{{ url('approvals/sales/' . $sale->id . '/query') }}" method="POST">
+        @csrf
+        <p class="font-medium mb-4">Reason for query:</p>
+        <textarea name="notes" required class="form-input mb-4" rows="3"></textarea>
+        <div class="flex gap-2 justify-end">
+            <button type="button" onclick="document.getElementById('querySale').close()" class="px-4 py-2 text-gray-700 border rounded">Cancel</button>
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Submit</button>
+        </div>
+    </form>
+</dialog>
 @endsection

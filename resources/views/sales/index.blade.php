@@ -7,20 +7,20 @@
 @section('content')
 <div class="mb-4 flex justify-between items-center">
     <form method="GET" class="flex gap-4 items-center">
-        <select name="outlet_id" class="rounded border-gray-300">
+        <select name="outlet_id" class="form-select-sm">
             <option value="">All Outlets</option>
             @foreach($outlets as $outlet)
                 <option value="{{ $outlet->id }}" {{ request()->outlet_id == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
             @endforeach
         </select>
-        <select name="status" class="rounded border-gray-300">
+        <select name="status" class="form-select-sm">
             <option value="">All Status</option>
             <option value="pending" {{ request()->status == 'pending' ? 'selected' : '' }}>Pending</option>
             <option value="approved" {{ request()->status == 'approved' ? 'selected' : '' }}>Approved</option>
             <option value="queried" {{ request()->status == 'queried' ? 'selected' : '' }}>Queried</option>
         </select>
-        <input type="date" name="date_from" value="{{ request()->date_from }}" class="rounded border-gray-300">
-        <input type="date" name="date_to" value="{{ request()->date_to }}" class="rounded border-gray-300">
+        <input type="date" name="date_from" value="{{ request()->date_from }}" class="form-input-sm">
+        <input type="date" name="date_to" value="{{ request()->date_to }}" class="form-input-sm">
         <button type="submit" class="bg-indigo-600 text-white px-3 py-1 rounded">Filter</button>
     </form>
     <a href="{{ url('sales/create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">New Sale</a>

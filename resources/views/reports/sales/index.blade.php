@@ -8,15 +8,15 @@
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Date From</label>
-        <input type="date" name="date_from" value="{{ request('date_from', date('Y-m-01')) }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_from" value="{{ request('date_from', date('Y-m-01')) }}" class="form-input-sm">
     </div>
     <div>
         <label class="block text-xs text-gray-500">Date To</label>
-        <input type="date" name="date_to" value="{{ request('date_to', date('Y-m-d')) }}" class="border rounded px-2 py-1">
+        <input type="date" name="date_to" value="{{ request('date_to', date('Y-m-d')) }}" class="form-input-sm">
     </div>
     <div>
         <label class="block text-xs text-gray-500">Outlet</label>
-        <select name="outlet_id" class="border rounded px-2 py-1">
+        <select name="outlet_id" class="form-select-sm">
             <option value="">All Outlets</option>
             @foreach($outlets as $outlet)
                 <option value="{{ $outlet->id }}" {{ request('outlet_id') == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
@@ -25,7 +25,7 @@
     </div>
     <div>
         <label class="block text-xs text-gray-500">Cylinder Type</label>
-        <select name="cylinder_type_id" class="border rounded px-2 py-1">
+        <select name="cylinder_type_id" class="form-select-sm">
             <option value="">All Cylinders</option>
             @foreach($cylinderTypes as $ct)
                 <option value="{{ $ct->id }}" {{ request('cylinder_type_id') == $ct->id ? 'selected' : '' }}>{{ $ct->name }}</option>
@@ -34,7 +34,7 @@
     </div>
     <div>
         <label class="block text-xs text-gray-500">Status</label>
-        <select name="status" class="border rounded px-2 py-1">
+        <select name="status" class="form-select-sm">
             <option value="">All Status</option>
             <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>

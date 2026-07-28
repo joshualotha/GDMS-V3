@@ -11,37 +11,37 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700">First Name *</label>
-            <input type="text" name="first_name" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="first_name" required class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Last Name *</label>
-            <input type="text" name="last_name" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="last_name" required class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">ID Number</label>
-            <input type="text" name="id_number" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="id_number" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Phone</label>
-            <input type="text" name="phone" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="phone" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="email" name="email" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Role / Title</label>
-            <input type="text" name="role_title" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="role_title" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Assigned Outlet</label>
-            <select name="outlet_id" class="mt-1 w-full border rounded px-3 py-2">
+            <select name="outlet_id" class="mt-1 form-select">
                 <option value="">HQ / None</option>
                 @foreach($outlets as $outlet)
                     <option value="{{ $outlet->id }}">{{ $outlet->name }}</option>
@@ -51,17 +51,17 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Hire Date</label>
-            <input type="date" name="hire_date" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="date" name="hire_date" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Basic Salary *</label>
-            <input type="number" name="basic_salary" step="0.01" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="number" name="basic_salary" step="0.01" required class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Status</label>
-            <select name="status" class="mt-1 w-full border rounded px-3 py-2">
+            <select name="status" class="mt-1 form-select">
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="terminated">Terminated</option>

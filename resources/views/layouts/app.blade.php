@@ -66,8 +66,27 @@
         .sidebar-nav-item { height: 38px; padding: 0 12px; margin: 1px 8px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 150ms ease; color: var(--sidebar-text); text-decoration: none; }
         .sidebar-nav-item:hover { background: var(--sidebar-hover); color: #CBD5E1; }
         .sidebar-nav-item.active { background: var(--sidebar-active); color: var(--sidebar-active-text); border-left: 3px solid var(--primary); }
-        .sidebar-nav-item-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+        .sidebar-nav-item-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sidebar-nav-item-icon svg { width: 100%; height: 100%; }
         .sidebar-nav-item-text { font-size: 14px; font-weight: 500; }
+        .sidebar-pinned-item { margin-bottom: 4px; }
+
+        /* Collapsible groups */
+        .sidebar-group-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 20px; margin-top: 4px; cursor: pointer; user-select: none; }
+        .sidebar-group-header:hover .sidebar-group-title { color: #CBD5E1; }
+        .sidebar-group-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .sidebar-group-icon { width: 16px; height: 16px; color: var(--sidebar-icon); flex-shrink: 0; }
+        .sidebar-group-icon svg { width: 100%; height: 100%; }
+        .sidebar-group-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sidebar-icon); transition: color 150ms ease; }
+        .sidebar-group-chevron { width: 14px; height: 14px; color: var(--sidebar-icon); flex-shrink: 0; transition: transform 200ms ease; }
+        .sidebar-group-chevron svg { width: 100%; height: 100%; }
+        .sidebar-group.open .sidebar-group-chevron { transform: rotate(90deg); }
+        .sidebar-group-items { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 200ms ease; }
+        .sidebar-group.open .sidebar-group-items { grid-template-rows: 1fr; }
+        .sidebar-group-items-inner { overflow: hidden; min-height: 0; }
+        .sidebar-group-items-inner .sidebar-nav-item { margin-left: 46px; }
+        .sidebar-group.sidebar-group-muted .sidebar-group-title,
+        .sidebar-group.sidebar-group-muted .sidebar-group-icon { opacity: 0.7; }
         
         /* Main Area */
         .main-area { margin-left: 256px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -133,7 +152,13 @@
         .form-hint { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
         .form-error { font-size: 13px; color: var(--danger); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
         textarea.form-input { height: auto; min-height: 120px; padding: 14px 16px; resize: vertical; }
-        
+
+        /* Compact form controls — filter bars, inline table edits */
+        .form-input-sm { width: 100%; min-width: 140px; height: 36px; padding: 0 10px; font-size: 13px; color: var(--text-primary); background: var(--bg-surface); border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); transition: all 200ms ease; outline: none; }
+        .form-input-sm:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
+        .form-select-sm { width: 100%; min-width: 140px; height: 36px; padding: 0 30px 0 10px; font-size: 13px; color: var(--text-primary); background: var(--bg-surface); border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; transition: all 200ms ease; outline: none; }
+        .form-select-sm:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
+
         /* Buttons */
         .btn { height: 48px; padding: 0 24px; font-size: 15px; font-weight: 600; font-family: var(--font-sans); border-radius: var(--radius-lg); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 200ms ease; border: none; outline: none; white-space: nowrap; text-decoration: none; }
         .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 2px 4px rgba(30,64,175,0.2); }
@@ -185,6 +210,10 @@
         .modal-close { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); }
         .modal-body { padding: 24px; }
         .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* Native <dialog> modals (used for inline quick-add / confirm popups) */
+        dialog { margin: auto; border: none; padding: 0; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-height: calc(100vh - 48px); max-width: calc(100% - 32px); }
+        dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
         
         /* Utility */
         .flex { display: flex; }
@@ -304,60 +333,115 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <!-- OPERATIONS -->
-                <div class="sidebar-group-label" style="cursor: default;">Operations</div>
-                <a href="{{ url('dashboard') }}" class="sidebar-nav-item {{ request()->is('dashboard') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Dashboard</span></a>
-                <a href="{{ url('sales') }}" class="sidebar-nav-item {{ request()->is('sales*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Sales</span></a>
+                <a href="{{ url('dashboard') }}" class="sidebar-nav-item sidebar-pinned-item {{ request()->is('dashboard') ? 'active' : '' }}">
+                    <span class="sidebar-nav-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+                    <span class="sidebar-nav-item-text">Dashboard</span>
+                </a>
 
-                <!-- WAREHOUSE -->
-                <div class="sidebar-group-label" style="cursor: default;">Warehouse</div>
-                <a href="{{ url('warehouse/stock-ledger') }}" class="sidebar-nav-item {{ request()->is('warehouse/stock-ledger*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Stock Ledger</span></a>
-                <a href="{{ url('sales/outlet-stock') }}" class="sidebar-nav-item {{ request()->is('sales/outlet-stock*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Stock</span></a>
-                <a href="{{ url('warehouse/opening-stock') }}" class="sidebar-nav-item {{ request()->is('warehouse/opening-stock*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Opening Stock</span></a>
-                <a href="{{ url('warehouse/movements') }}" class="sidebar-nav-item {{ request()->is('warehouse/movements*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Movements</span></a>
-                <a href="{{ url('warehouse/adjustments') }}" class="sidebar-nav-item {{ request()->is('warehouse/adjustments*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Adjustments</span></a>
-                <a href="{{ url('warehouse/procurement') }}" class="sidebar-nav-item {{ request()->is('warehouse/procurement*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Procurement</span></a>
+                @php
+                    $groups = [
+                        'sales' => [
+                            'label' => 'Sales',
+                            'icon' => '<path d="M3 3v18h18"/><polyline points="7 15 11 10 15 13 20 6"/>',
+                            'active' => request()->is('sales*', 'approvals*', 'reports/sales*', 'reports/cash*'),
+                            'items' => [
+                                ['sales', 'Sales', 'sales*'],
+                                ['approvals', 'Needs Attention', 'approvals*'],
+                                ['reports/sales', 'Sales Report', 'reports/sales*'],
+                                ['reports/cash', 'Cash Reconcile', 'reports/cash*'],
+                            ],
+                        ],
+                        'warehouse' => [
+                            'label' => 'Warehouse',
+                            'icon' => '<path d="M3 7l2-4h14l2 4"/><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M9 12h6"/>',
+                            'active' => request()->is('warehouse/stock-ledger*', 'sales/outlet-stock*', 'warehouse/opening-stock*', 'warehouse/movements*', 'warehouse/adjustments*', 'warehouse/procurement*', 'reports/stock*', 'reports/stock-movement*', 'reports/procurement*'),
+                            'items' => [
+                                ['warehouse/stock-ledger', 'Stock Ledger', 'warehouse/stock-ledger*'],
+                                ['sales/outlet-stock', 'Current Stock', 'sales/outlet-stock*'],
+                                ['warehouse/opening-stock', 'Opening Stock', 'warehouse/opening-stock*'],
+                                ['warehouse/movements', 'Movements', 'warehouse/movements*'],
+                                ['warehouse/adjustments', 'Adjustments', 'warehouse/adjustments*'],
+                                ['warehouse/procurement', 'Procurement (Receiving)', 'warehouse/procurement*'],
+                                ['reports/stock', 'Stock Report', 'reports/stock*'],
+                                ['reports/stock-movement', 'Stock Movement Report', 'reports/stock-movement*'],
+                                ['reports/procurement', 'Procurement Report', 'reports/procurement*'],
+                            ],
+                        ],
+                        'fuel' => [
+                            'label' => 'Fuel',
+                            'icon' => '<path d="M12 2s7 8 7 13a7 7 0 01-14 0c0-5 7-13 7-13z"/>',
+                            'active' => request()->is('fuel/*'),
+                            'items' => [
+                                ['fuel/purchases', 'Purchases', 'fuel/purchases*'],
+                                ['fuel/issues', 'Issues', 'fuel/issues*'],
+                                ['fuel/stock', 'Fuel Stock', 'fuel/stock*'],
+                                ['reports/fuel', 'Fuel Report', 'reports/fuel*'],
+                            ],
+                        ],
+                        'assets' => [
+                            'label' => 'Assets',
+                            'icon' => '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M3 13h18"/>',
+                            'active' => request()->is('assets*', 'reports/asset*', 'reports/depreciation*'),
+                            'items' => [
+                                ['assets', 'Register', 'assets*'],
+                                ['reports/asset', 'Asset Register Report', 'reports/asset*'],
+                                ['reports/depreciation', 'Depreciation Report', 'reports/depreciation*'],
+                            ],
+                        ],
+                        'hr' => [
+                            'label' => 'HR',
+                            'icon' => '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+                            'active' => request()->is('hr/*', 'payroll*', 'reports/payroll*'),
+                            'items' => [
+                                ['hr/employees', 'Employees', 'hr/employees*'],
+                                ['payroll', 'Payroll', 'payroll*'],
+                                ['reports/payroll', 'Payroll Report', 'reports/payroll*'],
+                            ],
+                        ],
+                        'finance' => [
+                            'label' => 'Finance',
+                            'icon' => '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+                            'active' => request()->is('expenses*', 'reports/profit-loss*'),
+                            'items' => [
+                                ['expenses', 'Expenses', 'expenses*'],
+                                ['reports/profit-loss', 'Profit & Loss', 'reports/profit-loss*'],
+                            ],
+                        ],
+                        'configuration' => [
+                            'label' => 'Configuration',
+                            'icon' => '<line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2"/>',
+                            'active' => request()->is('settings/*', 'customers*'),
+                            'items' => [
+                                ['settings/cylinder-types', 'Cylinder Types', 'settings/cylinder-types*'],
+                                ['settings/outlets', 'Outlets', 'settings/outlets*'],
+                                ['settings/suppliers', 'Suppliers', 'settings/suppliers*'],
+                                ['customers', 'Customers', 'customers*'],
+                                ['settings/asset-categories', 'Asset Categories', 'settings/asset-categories*'],
+                                ['settings/expense-categories', 'Expense Categories', 'settings/expense-categories*'],
+                                ['settings/general', 'General Settings', 'settings/general*'],
+                            ],
+                        ],
+                    ];
+                @endphp
 
-                <!-- FUEL -->
-                <div class="sidebar-group-label" style="cursor: default;">Fuel</div>
-                <a href="{{ url('fuel/purchases') }}" class="sidebar-nav-item {{ request()->is('fuel/purchases*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Purchases</span></a>
-                <a href="{{ url('fuel/issues') }}" class="sidebar-nav-item {{ request()->is('fuel/issues*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Issues</span></a>
-                <a href="{{ url('fuel/stock') }}" class="sidebar-nav-item {{ request()->is('fuel/stock*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Stock</span></a>
-
-                <!-- ASSETS -->
-                <div class="sidebar-group-label" style="cursor: default;">Assets</div>
-                <a href="{{ url('assets') }}" class="sidebar-nav-item {{ request()->is('assets*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Register</span></a>
-                <a href="{{ url('assets?status=under_maintenance') }}" class="sidebar-nav-item"><span class="sidebar-nav-item-text">Maintenance</span></a>
-
-                <!-- HR -->
-                <div class="sidebar-group-label" style="cursor: default;">HR</div>
-                <a href="{{ url('hr/employees') }}" class="sidebar-nav-item {{ request()->is('hr/employees*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Employees</span></a>
-                <a href="{{ url('payroll') }}" class="sidebar-nav-item {{ request()->is('payroll*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Payroll</span></a>
-
-                <!-- FINANCE -->
-                <div class="sidebar-group-label" style="cursor: default;">Finance</div>
-                <a href="{{ url('expenses') }}" class="sidebar-nav-item {{ request()->is('expenses*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Expenses</span></a>
-
-                <!-- CONFIG -->
-                <div class="sidebar-group-label" style="cursor: default;">Configuration</div>
-                <a href="{{ url('settings/cylinder-types') }}" class="sidebar-nav-item {{ request()->is('settings/cylinder-types*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Cylinder Types</span></a>
-                <a href="{{ url('settings/outlets') }}" class="sidebar-nav-item {{ request()->is('settings/outlets*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Outlets</span></a>
-                <a href="{{ url('settings/suppliers') }}" class="sidebar-nav-item {{ request()->is('settings/suppliers*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Suppliers</span></a>
-                <a href="{{ url('settings/general') }}" class="sidebar-nav-item {{ request()->is('settings/general*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Settings</span></a>
-                <a href="{{ url('settings/asset-categories') }}" class="sidebar-nav-item {{ request()->is('settings/asset-categories*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Asset Categories</span></a>
-                <a href="{{ url('settings/expense-categories') }}" class="sidebar-nav-item {{ request()->is('settings/expense-categories*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Expense Categories</span></a>
-
-                <!-- REPORTS -->
-                <div class="sidebar-group-label" style="cursor: default;">Reports</div>
-                <a href="{{ url('reports/stock') }}" class="sidebar-nav-item {{ request()->is('reports/stock*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Stock Report</span></a>
-                <a href="{{ url('reports/sales') }}" class="sidebar-nav-item {{ request()->is('reports/sales*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Sales Report</span></a>
-                <a href="{{ url('reports/procurement') }}" class="sidebar-nav-item {{ request()->is('reports/procurement*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Procurement</span></a>
-                <a href="{{ url('reports/cash') }}" class="sidebar-nav-item {{ request()->is('reports/cash*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Cash Reconcile</span></a>
-                <a href="{{ url('reports/fuel') }}" class="sidebar-nav-item {{ request()->is('reports/fuel*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Fuel Report</span></a>
-                <a href="{{ url('reports/asset') }}" class="sidebar-nav-item {{ request()->is('reports/asset*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Asset Register</span></a>
-                <a href="{{ url('reports/depreciation') }}" class="sidebar-nav-item {{ request()->is('reports/depreciation*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Depreciation</span></a>
-                <a href="{{ url('reports/payroll') }}" class="sidebar-nav-item {{ request()->is('reports/payroll*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Payroll</span></a>
-                <a href="{{ url('reports/profit-loss') }}" class="sidebar-nav-item {{ request()->is('reports/profit-loss*') ? 'active' : '' }}"><span class="sidebar-nav-item-text">Profit & Loss</span></a>
+                @foreach($groups as $key => $group)
+                    <div class="sidebar-group {{ $key === 'configuration' ? 'sidebar-group-muted' : '' }} {{ $group['active'] ? 'open' : '' }}" data-group-id="{{ $key }}">
+                        <div class="sidebar-group-header" onclick="toggleSidebarGroup('{{ $key }}')">
+                            <div class="sidebar-group-header-left">
+                                <span class="sidebar-group-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{!! $group['icon'] !!}</svg></span>
+                                <span class="sidebar-group-title">{{ $group['label'] }}</span>
+                            </div>
+                            <span class="sidebar-group-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                        </div>
+                        <div class="sidebar-group-items">
+                            <div class="sidebar-group-items-inner">
+                                @foreach($group['items'] as [$path, $label, $pattern])
+                                    <a href="{{ url($path) }}" class="sidebar-nav-item {{ request()->is($pattern) ? 'active' : '' }}"><span class="sidebar-nav-item-text">{{ $label }}</span></a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </nav>
         </aside>
 
@@ -392,6 +476,21 @@
 
             <!-- Page Content -->
             <main class="page-content">
+                @if(session('success'))
+                    <div class="alert alert-success mb-6">{{ session('success') }}</div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger mb-6">{{ session('error') }}</div>
+                @endif
+                @if($errors->any())
+                    <div class="alert alert-danger mb-6">
+                        <ul style="margin: 0; padding-left: 18px;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 @yield('content')
             </main>
         </div>
@@ -401,6 +500,22 @@
             document.getElementById('sidebar').classList.toggle('open');
             document.querySelector('.sidebar-overlay').classList.toggle('open');
         }
+
+        function toggleSidebarGroup(id) {
+            var group = document.querySelector('.sidebar-group[data-group-id="' + id + '"]');
+            var isOpen = group.classList.toggle('open');
+            localStorage.setItem('sidebar-group-' + id, isOpen ? '1' : '0');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.sidebar-group').forEach(function (group) {
+                if (group.classList.contains('open')) return; // active group, always shown
+                var stored = localStorage.getItem('sidebar-group-' + group.dataset.groupId);
+                if (stored === '1') {
+                    group.classList.add('open');
+                }
+            });
+        });
     </script>
 </body>
 </html>

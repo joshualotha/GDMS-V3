@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CompanyAsset extends Model
 {
@@ -24,6 +25,8 @@ class CompanyAsset extends Model
         'assigned_to_outlet',
         'assigned_to_employee',
         'status',
+        'disposed_at',
+        'disposal_notes',
     ];
 
     protected $casts = [
@@ -32,6 +35,7 @@ class CompanyAsset extends Model
         'current_book_value' => 'decimal:2',
         'depreciation_rate' => 'decimal:2',
         'purchase_date' => 'date',
+        'disposed_at' => 'date',
     ];
 
     public function category(): BelongsTo
@@ -54,8 +58,20 @@ class CompanyAsset extends Model
         return $this->hasMany(DepreciationLog::class, 'asset_id');
     }
 
-    public function maintenanceLogs(): HasMany
+    /**
+     * Maintenance costs are recorded as regular Expenses tagged with this asset,
+     * not a separate maintenance log.
+     */
+    public function expenses(): HasMany
     {
-        return $this->hasMany(MaintenanceLog::class);
+        return $this->hasMany(Expense::class, 'asset_id');
+    }
+
+    /**
+     * If this asset IS a vehicle used as a car-outlet, this is that outlet.
+     */
+    public function outletAsCar(): HasOne
+    {
+        return $this->hasOne(Outlet::class, 'asset_id');
     }
 }

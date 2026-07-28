@@ -42,7 +42,7 @@
                 <td>{{ $sale->sale_date->format('d/m/Y') }}</td>
                 <td>{{ $sale->outlet->name ?? '-' }}</td>
                 <td>{{ $sale->sale_number ?? '-' }}</td>
-                <td class="text-right">{{ number_format($sale->total_amount, 2) }}</td>
+                <td class="text-right">{{ number_format($sale->total_price, 2) }}</td>
                 <td class="text-right">{{ number_format($sale->cash_submitted, 2) }}</td>
                 <td class="text-right {{ $sale->cash_variance != 0 ? 'variance' : 'no-variance' }}">
                     {{ number_format($sale->cash_variance, 2) }}

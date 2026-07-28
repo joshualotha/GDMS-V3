@@ -33,7 +33,7 @@
             <div>
                 <label for="business_name" class="block text-sm font-medium text-gray-700">Business Name</label>
                 <input type="text" name="business_name" id="business_name" value="{{ old('business_name', $settings['business_name']) }}" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    class="mt-1 form-input">
                 @error('business_name')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -42,7 +42,7 @@
             <div>
                 <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
                 <textarea name="address" id="address" rows="3"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('address', $settings['address']) }}</textarea>
+                    class="mt-1 form-input">{{ old('address', $settings['address']) }}</textarea>
                 @error('address')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -52,7 +52,7 @@
                 <div>
                     <label for="currency" class="block text-sm font-medium text-gray-700">Currency</label>
                     <input type="text" name="currency" id="currency" value="{{ old('currency', $settings['currency']) }}" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="mt-1 form-input">
                     @error('currency')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -61,7 +61,7 @@
                 <div>
                     <label for="financial_year_start" class="block text-sm font-medium text-gray-700">Financial Year Start</label>
                     <select name="financial_year_start" id="financial_year_start" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="mt-1 form-select">
                         <option value="01" {{ $settings['financial_year_start'] == '01' ? 'selected' : '' }}>January</option>
                         <option value="02" {{ $settings['financial_year_start'] == '02' ? 'selected' : '' }}>February</option>
                         <option value="03" {{ $settings['financial_year_start'] == '03' ? 'selected' : '' }}>March</option>
@@ -110,7 +110,7 @@
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
                 <input type="text" name="name" id="name" value="{{ old('name', $admin->name) }}" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    class="mt-1 form-input">
                 @error('name')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -119,7 +119,7 @@
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
                 <input type="email" name="email" id="email" value="{{ old('email', $admin->email) }}" required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    class="mt-1 form-input">
                 <p class="mt-1 text-xs text-gray-500">Used to receive password reset links. Enter this email on the forgot password page.</p>
                 @error('email')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -138,7 +138,7 @@
                 <div>
                     <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
                     <input type="password" name="current_password" id="current_password"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        class="mt-1 form-input">
                     @error('current_password')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -148,7 +148,7 @@
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700">New Password</label>
                         <input type="password" name="password" id="password"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="mt-1 form-input">
                         @error('password')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -157,7 +157,7 @@
                     <div>
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
                         <input type="password" name="password_confirmation" id="password_confirmation"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="mt-1 form-input">
                     </div>
                 </div>
             </div>

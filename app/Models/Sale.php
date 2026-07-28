@@ -13,6 +13,7 @@ class Sale extends Model
     protected $fillable = [
         'sale_number',
         'outlet_id',
+        'customer_id',
         'sale_date',
         'status',
         'total_price',
@@ -27,7 +28,6 @@ class Sale extends Model
     ];
 
     protected $casts = [
-        'sale_date' => 'date',
         'sale_date' => 'date',
         'total_price' => 'decimal:2',
         'total_cost' => 'decimal:2',
@@ -49,6 +49,11 @@ class Sale extends Model
     public function outlet(): BelongsTo
     {
         return $this->belongsTo(Outlet::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function items(): HasMany

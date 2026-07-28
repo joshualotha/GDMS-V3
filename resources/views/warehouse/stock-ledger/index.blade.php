@@ -58,6 +58,7 @@
     <div class="card-header">
         <h3>Stock Movements</h3>
     </div>
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -96,6 +97,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
 {{ $ledger->appends(request()->query())->links() }}

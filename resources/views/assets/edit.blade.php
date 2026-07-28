@@ -12,63 +12,65 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700">Asset Number</label>
-            <input type="text" value="{{ $asset->asset_number }}" readonly class="mt-1 w-full border rounded px-3 py-2 bg-gray-100">
+            <input type="text" value="{{ $asset->asset_number }}" readonly class="mt-1 form-input bg-gray-100">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Category *</label>
-            <select name="asset_category_id" required class="mt-1 w-full border rounded px-3 py-2">
+            <select name="asset_category_id" id="asset_category_id" required class="mt-1 form-select" onchange="toggleDepreciationFields()">
                 <option value="">Select Category</option>
                 @foreach($categories as $cat)
-                <option value="{{ $cat->id }}" {{ $asset->asset_category_id == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                <option value="{{ $cat->id }}" data-depreciable="{{ $cat->is_depreciable ? '1' : '0' }}" {{ $asset->asset_category_id == $cat->id ? 'selected' : '' }}>{{ $cat->name }} ({{ $cat->is_depreciable ? 'Depreciable' : 'Non-depreciable' }})</option>
                 @endforeach
             </select>
         </div>
 
         <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700">Asset Name *</label>
-            <input type="text" name="name" value="{{ $asset->name }}" required class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="name" value="{{ $asset->name }}" required class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Serial Number</label>
-            <input type="text" name="serial_number" value="{{ $asset->serial_number }}" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="serial_number" value="{{ $asset->serial_number }}" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Plate Number</label>
-            <input type="text" name="plate_number" value="{{ $asset->plate_number }}" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="text" name="plate_number" value="{{ $asset->plate_number }}" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Purchase Date</label>
-            <input type="date" name="purchase_date" value="{{ $asset->purchase_date ? $asset->purchase_date->format('Y-m-d') : '' }}" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="date" name="purchase_date" value="{{ $asset->purchase_date ? $asset->purchase_date->format('Y-m-d') : '' }}" class="mt-1 form-input">
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Purchase Cost</label>
-            <input type="number" name="purchase_cost" step="0.01" value="{{ $asset->purchase_cost }}" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="number" name="purchase_cost" step="0.01" value="{{ $asset->purchase_cost }}" class="mt-1 form-input">
         </div>
 
-        <div>
+        <div id="depreciation-rate-field">
             <label class="block text-sm font-medium text-gray-700">Annual Depreciation Rate (%)</label>
-            <input type="number" name="depreciation_rate" step="0.01" value="{{ $asset->depreciation_rate }}" placeholder="e.g. 20" class="mt-1 w-full border rounded px-3 py-2">
+            <input type="number" name="depreciation_rate" value="{{ $asset->depreciation_rate }}" placeholder="e.g. 20" class="mt-1 form-input">
             <p class="text-xs text-gray-500 mt-1">Annual reducing balance rate. The system converts this to monthly automatically.</p>
         </div>
 
-        <div class="bg-gray-50 p-3 rounded border">
-            <label class="block text-sm font-medium text-gray-500">Current Book Value (auto-calculated)</label>
-            <div class="text-lg font-bold text-gray-800">{{ number_format($asset->current_book_value, 2) }}</div>
-        </div>
+        <div id="depreciation-values-fields" class="contents">
+            <div class="bg-gray-50 p-3 rounded border">
+                <label class="block text-sm font-medium text-gray-500">Current Book Value (auto-calculated)</label>
+                <div class="text-lg font-bold text-gray-800">{{ number_format($asset->current_book_value, 2) }}</div>
+            </div>
 
-        <div class="bg-gray-50 p-3 rounded border">
-            <label class="block text-sm font-medium text-gray-500">Accumulated Depreciation (auto-calculated)</label>
-            <div class="text-lg font-bold text-gray-800">{{ number_format($asset->accumulated_depreciation, 2) }}</div>
+            <div class="bg-gray-50 p-3 rounded border">
+                <label class="block text-sm font-medium text-gray-500">Accumulated Depreciation (auto-calculated)</label>
+                <div class="text-lg font-bold text-gray-800">{{ number_format($asset->accumulated_depreciation, 2) }}</div>
+            </div>
         </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Assigned to Outlet</label>
-            <select name="assigned_to_outlet" class="mt-1 w-full border rounded px-3 py-2">
+            <select name="assigned_to_outlet" class="mt-1 form-select">
                 <option value="">None</option>
                 @foreach($outlets as $outlet)
                 <option value="{{ $outlet->id }}" {{ $asset->assigned_to_outlet == $outlet->id ? 'selected' : '' }}>{{ $outlet->name }}</option>
@@ -78,7 +80,7 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Assigned to Employee</label>
-            <select name="assigned_to_employee" class="mt-1 w-full border rounded px-3 py-2">
+            <select name="assigned_to_employee" class="mt-1 form-select">
                 <option value="">None</option>
                 @foreach($employees as $emp)
                 <option value="{{ $emp->id }}" {{ $asset->assigned_to_employee == $emp->id ? 'selected' : '' }}>{{ $emp->name }}</option>
@@ -86,12 +88,11 @@
             </select>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Status</label>
-            <select name="status" class="mt-1 w-full border rounded px-3 py-2">
-                <option value="active" {{ $asset->status == 'active' ? 'selected' : '' }}>Active</option>
-                <option value="disposed" {{ $asset->status == 'disposed' ? 'selected' : '' }}>Disposed</option>
-            </select>
+        <div class="bg-gray-50 p-3 rounded border flex items-center justify-between">
+            <div>
+                <label class="block text-sm font-medium text-gray-500">Status</label>
+                <div class="text-sm text-gray-800">Active &mdash; use "Dispose Asset" on the asset's page to retire it.</div>
+            </div>
         </div>
     </div>
 
@@ -100,4 +101,16 @@
         <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Update Asset</button>
     </div>
 </form>
+
+<script>
+function toggleDepreciationFields() {
+    var select = document.getElementById('asset_category_id');
+    var option = select.options[select.selectedIndex];
+    var isDepreciable = option ? option.dataset.depreciable === '1' : true;
+
+    document.getElementById('depreciation-rate-field').classList.toggle('hidden', !isDepreciable);
+    document.getElementById('depreciation-values-fields').classList.toggle('hidden', !isDepreciable);
+}
+document.addEventListener('DOMContentLoaded', toggleDepreciationFields);
+</script>
 @endsection

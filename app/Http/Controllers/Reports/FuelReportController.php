@@ -35,7 +35,7 @@ class FuelReportController extends Controller
         }
 
         $purchases = $purchasesQuery->orderBy('date', 'desc')->get();
-        $issues = $issuesQuery->with('asset')->orderBy('created_at', 'desc')->get();
+        $issues = $issuesQuery->with('outlet')->orderBy('created_at', 'desc')->get();
 
         if ($request->fuel_type) {
             $purchasesQuery->where('fuel_type', $request->fuel_type);
@@ -43,7 +43,7 @@ class FuelReportController extends Controller
         }
 
         $purchases = $purchasesQuery->orderBy('created_at', 'desc')->get();
-        $issues = $issuesQuery->with('asset')->orderBy('created_at', 'desc')->get();
+        $issues = $issuesQuery->with('outlet')->orderBy('created_at', 'desc')->get();
 
         $fuelStock = FuelStock::all()->keyBy('fuel_type');
 
@@ -85,7 +85,7 @@ class FuelReportController extends Controller
         }
 
         $purchases = $purchasesQuery->orderBy('date', 'desc')->get();
-        $issues = $issuesQuery->with('asset')->orderBy('created_at', 'desc')->get();
+        $issues = $issuesQuery->with('outlet')->orderBy('created_at', 'desc')->get();
 
         if ($request->fuel_type) {
             $purchasesQuery->where('fuel_type', $request->fuel_type);
@@ -93,7 +93,7 @@ class FuelReportController extends Controller
         }
 
         $purchases = $purchasesQuery->orderBy('created_at', 'desc')->get();
-        $issues = $issuesQuery->with('asset')->orderBy('created_at', 'desc')->get();
+        $issues = $issuesQuery->with('outlet')->orderBy('created_at', 'desc')->get();
 
         $fuelStock = FuelStock::all()->keyBy('fuel_type');
 

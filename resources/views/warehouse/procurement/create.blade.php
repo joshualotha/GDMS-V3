@@ -40,6 +40,7 @@
             <h3>Cylinders to Receive</h3>
             <span class="text-sm text-muted">Enter quantity for each type being received</span>
         </div>
+        <div class="table-scroll">
         <table>
             <thead>
                 <tr>
@@ -81,6 +82,7 @@
                 </tr>
             </tfoot>
         </table>
+        </div>
     </div>
 
     <div class="flex justify-between">

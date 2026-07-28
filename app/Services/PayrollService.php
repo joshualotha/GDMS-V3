@@ -75,6 +75,21 @@ class PayrollService
         return $period;
     }
 
+    public function unapprovePeriod(PayrollPeriod $period): PayrollPeriod
+    {
+        if ($period->status !== 'approved') {
+            throw new \Exception("Only approved periods can be reverted to draft.");
+        }
+
+        $period->update([
+            'status' => 'draft',
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return $period;
+    }
+
     public function markAsPaid(PayrollPeriod $period): PayrollPeriod
     {
         if ($period->status !== 'approved') {
@@ -88,17 +103,48 @@ class PayrollService
         return $period;
     }
 
+    public function addEmployeeToPeriod(PayrollPeriod $period, Employee $employee): PayrollItem
+    {
+        if ($period->status !== 'draft') {
+            throw new \Exception("Employees can only be added to a draft payroll period.");
+        }
+
+        if ($period->items()->where('employee_id', $employee->id)->exists()) {
+            throw new \Exception("{$employee->full_name} is already in this payroll period.");
+        }
+
+        $item = PayrollItem::create([
+            'payroll_period_id' => $period->id,
+            'employee_id' => $employee->id,
+            'basic_salary' => $employee->basic_salary,
+            'allowances' => 0,
+            'deductions' => 0,
+            'net_pay' => $employee->basic_salary,
+        ]);
+
+        $this->recalculatePeriodTotals($period);
+
+        return $item;
+    }
+
     public function updatePayrollItem(PayrollItem $item, array $data): PayrollItem
     {
         if ($item->period->status !== 'draft') {
             throw new \Exception("Cannot edit items in a non-draft period.");
         }
 
+        $allowances = $data['allowances'] ?? 0;
+        $deductions = $data['deductions'] ?? 0;
+
+        if (round((float) $item->basic_salary + $allowances - $deductions, 2) < 0) {
+            throw new \Exception("Deductions cannot exceed basic salary plus allowances.");
+        }
+
         $item->update([
-            'allowances' => $data['allowances'] ?? $item->allowances,
-            'allowance_note' => $data['allowance_note'] ?? $item->allowance_note,
-            'deductions' => $data['deductions'] ?? $item->deductions,
-            'deduction_note' => $data['deduction_note'] ?? $item->deduction_note,
+            'allowances' => $allowances,
+            'allowance_note' => $data['allowance_note'] ?? null,
+            'deductions' => $deductions,
+            'deduction_note' => $data['deduction_note'] ?? null,
         ]);
 
         $this->recalculatePeriodTotals($item->period);

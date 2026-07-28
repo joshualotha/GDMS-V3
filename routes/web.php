@@ -4,6 +4,7 @@ use App\Http\Controllers\Asset\AssetController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\Fuel\FuelIssueController;
@@ -39,15 +40,13 @@ use App\Http\Controllers\Warehouse\StockMainController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])->name('password.request');
-Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('password.email');
 Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
-
-Route::get('/api/outlet/{outlet}/stock', [SaleController::class, 'getOutletStock']);
+Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -74,6 +73,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/settings/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
     Route::post('/settings/suppliers/{supplier}/toggle', [SupplierController::class, 'toggle'])->name('suppliers.toggle');
 
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
+    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+
     Route::get('/settings/general', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings/general', [SettingController::class, 'update'])->name('settings.update');
     Route::post('/settings/general/account', [SettingController::class, 'updateAccount'])->name('settings.update-account');
@@ -85,16 +90,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/settings/asset-categories/{asset_category}', [AssetCategoryController::class, 'update'])->name('asset-categories.update');
     Route::post('/settings/asset-categories/{asset_category}/toggle', [AssetCategoryController::class, 'toggle'])->name('asset-categories.toggle');
 
-    Route::get('/procurement/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
-    Route::get('/procurement/purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('purchase-orders.create');
-    Route::post('/procurement/purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
-    Route::get('/procurement/purchase-orders/{purchase_order}', [PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
-    Route::get('/procurement/purchase-orders/{purchase_order}/items', [PurchaseOrderController::class, 'items'])->name('purchase-orders.items');
-
-    Route::get('/procurement/goods-received', [GoodsReceivedController::class, 'index'])->name('goods-received.index');
-    Route::get('/procurement/goods-received/create', [GoodsReceivedController::class, 'create'])->name('goods-received.create');
-    Route::post('/procurement/goods-received', [GoodsReceivedController::class, 'store'])->name('goods-received.store');
-    Route::get('/procurement/goods-received/{goods_received}', [GoodsReceivedController::class, 'show'])->name('goods-received.show');
+    // NOTE: the formal Purchase Order -> Goods Received workflow (app/Http/Controllers/Procurement/*)
+    // is intentionally unrouted. The business uses "Quick Receiving" (warehouse/procurement) as the
+    // single procurement flow. The PO/GRN code is left in place in case it's needed again later.
 
     Route::get('/warehouse/opening-stock', [OpeningStockController::class, 'index'])->name('opening-stock.index');
     Route::get('/warehouse/opening-stock/create', [OpeningStockController::class, 'create'])->name('opening-stock.create');
@@ -115,6 +113,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/warehouse/adjustments', [StockAdjustmentController::class, 'store'])->name('stock-adjustments.store');
 
     Route::get('/sales/outlet-stock', [OutletStockController::class, 'index'])->name('outlet-stock.index');
+    Route::get('/api/outlet/{outlet}/stock', [SaleController::class, 'getOutletStock']);
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
     Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
@@ -140,7 +139,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');
     Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
     Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
-    Route::post('/assets/run-depreciation', [AssetController::class, 'runDepreciation'])->name('assets.run-depreciation');
+    Route::post('/assets/{asset}/dispose', [AssetController::class, 'dispose'])->name('assets.dispose');
+    Route::post('/assets/{asset}/reactivate', [AssetController::class, 'reactivate'])->name('assets.reactivate');
     Route::post('/assets/catch-up-depreciation', [AssetController::class, 'catchUpDepreciation'])->name('assets.catch-up-depreciation');
 
     Route::get('/hr/employees', [EmployeeController::class, 'index'])->name('employees.index');
@@ -156,7 +156,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/payroll', [PayrollPeriodController::class, 'store'])->name('payroll.store');
     Route::get('/payroll/{period}', [PayrollPeriodController::class, 'show'])->name('payroll.show');
     Route::post('/payroll/{period}/approve', [PayrollPeriodController::class, 'approve'])->name('payroll.approve');
+    Route::post('/payroll/{period}/unapprove', [PayrollPeriodController::class, 'unapprove'])->name('payroll.unapprove');
     Route::post('/payroll/{period}/mark-paid', [PayrollPeriodController::class, 'markPaid'])->name('payroll.markPaid');
+    Route::post('/payroll/{period}/add-employee', [PayrollPeriodController::class, 'addEmployee'])->name('payroll.addEmployee');
     Route::put('/payroll/item/{item}', [PayrollItemController::class, 'update'])->name('payroll.item.update');
     Route::get('/payroll/item/{item}/payslip', [PayslipController::class, 'show'])->name('payslip.show');
     Route::get('/payroll/item/{item}/payslip/download', [PayslipController::class, 'download'])->name('payslip.download');
@@ -170,10 +172,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/expense-categories/{expense_category}/edit', [ExpenseCategoryController::class, 'edit'])->name('expense-categories.edit');
     Route::put('/settings/expense-categories/{expense_category}', [ExpenseCategoryController::class, 'update'])->name('expense-categories.update');
     Route::post('/settings/expense-categories/{expense_category}/toggle', [ExpenseCategoryController::class, 'toggle'])->name('expense-categories.toggle');
-
-    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
-    Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
-    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
 
     Route::get('/reports/stock', [StockReportController::class, 'index'])->name('reports.stock.index');
     Route::get('/reports/stock/export', [StockReportController::class, 'export'])->name('reports.stock.export');

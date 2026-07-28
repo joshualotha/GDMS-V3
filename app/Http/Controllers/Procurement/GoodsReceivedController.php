@@ -52,66 +52,93 @@ class GoodsReceivedController extends Controller
     {
         $validated = $request->validated();
 
-        return DB::transaction(function () use ($validated) {
-            $grn = GoodsReceived::create([
-                'grn_number' => ReferenceGenerator::generateGrnNumber(),
-                'supplier_id' => $validated['supplier_id'],
-                'purchase_order_id' => $validated['purchase_order_id'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-            ]);
+        try {
+            return DB::transaction(function () use ($validated) {
+                $purchaseOrder = null;
 
-            $totalCost = 0;
+                if (!empty($validated['purchase_order_id'])) {
+                    $purchaseOrder = PurchaseOrder::with('items')
+                        ->lockForUpdate()
+                        ->findOrFail($validated['purchase_order_id']);
 
-            foreach ($validated['items'] as $item) {
-                $lineTotal = $item['quantity'] * $item['unit_cost'];
-                GoodsReceivedItem::create([
-                    'goods_received_id' => $grn->id,
-                    'cylinder_type_id' => $item['cylinder_type_id'],
-                    'purchase_type' => $item['purchase_type'],
-                    'quantity' => $item['quantity'],
-                    'unit_cost' => $item['unit_cost'],
-                    'line_total' => $lineTotal,
-                ]);
-                $totalCost += $lineTotal;
+                    if ($purchaseOrder->status !== 'pending') {
+                        throw new \Exception("This purchase order has already been received (status: {$purchaseOrder->status}).");
+                    }
 
-                // Update stock based on purchase type
-                if ($item['purchase_type'] == 'full') {
-                    // Full cylinders purchased from factory: +full stock
-                    $this->stockService->updateMainStock(
-                        $item['cylinder_type_id'],
-                        $item['quantity'],  // +full
-                        0,                 // no empty change
-                        'grn_full',
-                        'GoodsReceived',
-                        $grn->id,
-                        "GRN: {$grn->grn_number} - Full cylinders received"
-                    );
-                } else {
-                    // Refill: we exchange empty cylinders for full ones from factory
-                    // We receive full cylinders, so: +full, -empty (empties go to factory)
-                    $this->stockService->updateMainStock(
-                        $item['cylinder_type_id'],
-                        $item['quantity'],   // +full (fulls received from factory)
-                        -$item['quantity'], // -empty (empties sent to factory for refill)
-                        'grn_refill',
-                        'GoodsReceived',
-                        $grn->id,
-                        "GRN: {$grn->grn_number} - Refill exchange"
-                    );
+                    foreach ($validated['items'] as $item) {
+                        $poItem = $purchaseOrder->items->first(fn ($poi) =>
+                            $poi->cylinder_type_id == $item['cylinder_type_id']
+                            && $poi->purchase_type == $item['purchase_type']
+                        );
+                        $orderedQty = $poItem ? $poItem->quantity : 0;
+
+                        if ($item['quantity'] > $orderedQty) {
+                            $cylinderType = CylinderType::find($item['cylinder_type_id']);
+                            throw new \Exception("Cannot receive {$item['quantity']} {$item['purchase_type']} {$cylinderType->name} — only {$orderedQty} was ordered on this purchase order.");
+                        }
+                    }
                 }
-            }
 
-            $grn->update(['total_cost' => $totalCost, 'status' => 'completed']);
+                $grn = GoodsReceived::create([
+                    'grn_number' => ReferenceGenerator::generateGrnNumber(),
+                    'supplier_id' => $validated['supplier_id'],
+                    'purchase_order_id' => $validated['purchase_order_id'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                ]);
 
-            // Update PO status if linked
-            if (!empty($validated['purchase_order_id'])) {
-                PurchaseOrder::where('id', $validated['purchase_order_id'])
-                    ->update(['status' => 'received']);
-            }
+                $totalCost = 0;
 
-            return redirect()->route('goods-received.index')
-                ->with('success', 'Goods received and stock updated successfully.');
-        });
+                foreach ($validated['items'] as $item) {
+                    $lineTotal = $item['quantity'] * $item['unit_cost'];
+                    GoodsReceivedItem::create([
+                        'goods_received_id' => $grn->id,
+                        'cylinder_type_id' => $item['cylinder_type_id'],
+                        'purchase_type' => $item['purchase_type'],
+                        'quantity' => $item['quantity'],
+                        'unit_cost' => $item['unit_cost'],
+                        'line_total' => $lineTotal,
+                    ]);
+                    $totalCost += $lineTotal;
+
+                    // Update stock based on purchase type
+                    if ($item['purchase_type'] == 'full') {
+                        // Full cylinders purchased from factory: +full stock
+                        $this->stockService->updateMainStock(
+                            $item['cylinder_type_id'],
+                            $item['quantity'],  // +full
+                            0,                 // no empty change
+                            'grn_full',
+                            'GoodsReceived',
+                            $grn->id,
+                            "GRN: {$grn->grn_number} - Full cylinders received"
+                        );
+                    } else {
+                        // Refill: we exchange empty cylinders for full ones from factory
+                        // We receive full cylinders, so: +full, -empty (empties go to factory)
+                        $this->stockService->updateMainStock(
+                            $item['cylinder_type_id'],
+                            $item['quantity'],   // +full (fulls received from factory)
+                            -$item['quantity'], // -empty (empties sent to factory for refill)
+                            'grn_refill',
+                            'GoodsReceived',
+                            $grn->id,
+                            "GRN: {$grn->grn_number} - Refill exchange"
+                        );
+                    }
+                }
+
+                $grn->update(['total_cost' => $totalCost, 'status' => 'completed']);
+
+                if ($purchaseOrder) {
+                    $purchaseOrder->update(['status' => 'received']);
+                }
+
+                return redirect()->route('goods-received.index')
+                    ->with('success', 'Goods received and stock updated successfully.');
+            });
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
     }
 
     public function show(GoodsReceived $goodsReceived)
