@@ -343,10 +343,11 @@
                         'sales' => [
                             'label' => 'Sales',
                             'icon' => '<path d="M3 3v18h18"/><polyline points="7 15 11 10 15 13 20 6"/>',
-                            'active' => request()->is('sales*', 'approvals*', 'reports/sales*', 'reports/cash*'),
+                            'active' => request()->is('sales*', 'approvals*', 'reports/sales*', 'reports/cash*', 'settings/outlets*'),
                             'items' => [
                                 ['sales', 'Sales', 'sales*'],
                                 ['approvals', 'Needs Attention', 'approvals*'],
+                                ['settings/outlets', 'Outlets', 'settings/outlets*'],
                                 ['reports/sales', 'Sales Report', 'reports/sales*'],
                                 ['reports/cash', 'Cash Reconcile', 'reports/cash*'],
                             ],
@@ -410,10 +411,9 @@
                         'configuration' => [
                             'label' => 'Configuration',
                             'icon' => '<line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2"/>',
-                            'active' => request()->is('settings/*', 'customers*'),
+                            'active' => request()->is('settings/cylinder-types*', 'settings/suppliers*', 'customers*', 'settings/asset-categories*', 'settings/expense-categories*', 'settings/general*'),
                             'items' => [
                                 ['settings/cylinder-types', 'Cylinder Types', 'settings/cylinder-types*'],
-                                ['settings/outlets', 'Outlets', 'settings/outlets*'],
                                 ['settings/suppliers', 'Suppliers', 'settings/suppliers*'],
                                 ['customers', 'Customers', 'customers*'],
                                 ['settings/asset-categories', 'Asset Categories', 'settings/asset-categories*'],
