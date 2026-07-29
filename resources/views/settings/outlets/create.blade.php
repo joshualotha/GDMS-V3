@@ -77,7 +77,7 @@
         <div id="physical-fields" class="{{ old('type') == 'car' ? 'hidden' : '' }}">
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Location *</label>
-                <input type="text" name="location" value="{{ old('location') }}" required 
+                <input type="text" name="location" id="location-input" value="{{ old('location') }}" required
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Address or description">
             </div>
@@ -104,14 +104,20 @@
 
 <script>
 function toggleCarFields(type) {
+    var locationInput = document.getElementById('location-input');
     if (type === 'car') {
         document.getElementById('car-fields').classList.remove('hidden');
         document.getElementById('physical-fields').classList.add('hidden');
+        locationInput.required = false;
     } else {
         document.getElementById('car-fields').classList.add('hidden');
         document.getElementById('physical-fields').classList.remove('hidden');
+        locationInput.required = true;
     }
 }
+document.addEventListener('DOMContentLoaded', function () {
+    toggleCarFields(document.getElementById('outlet-type').value);
+});
 
 function toggleNewAssetFields() {
     var linkingToExisting = document.getElementById('asset-select').value !== '';
