@@ -109,10 +109,12 @@ function toggleCarFields(type) {
         document.getElementById('car-fields').classList.remove('hidden');
         document.getElementById('physical-fields').classList.add('hidden');
         locationInput.required = false;
+        toggleNewAssetFields();
     } else {
         document.getElementById('car-fields').classList.add('hidden');
         document.getElementById('physical-fields').classList.remove('hidden');
         locationInput.required = true;
+        document.getElementById('asset-category').required = false;
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
@@ -126,6 +128,5 @@ function toggleNewAssetFields() {
     fields.classList.toggle('hidden', linkingToExisting);
     categorySelect.required = !linkingToExisting;
 }
-document.addEventListener('DOMContentLoaded', toggleNewAssetFields);
 </script>
 @endsection
