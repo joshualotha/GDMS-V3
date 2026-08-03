@@ -71,7 +71,7 @@
             <select name="assigned_to_employee" class="mt-1 form-select">
                 <option value="">None</option>
                 @foreach($employees as $emp)
-                    <option value="{{ $emp->id }}">{{ $emp->name }}</option>
+                    <option value="{{ $emp->id }}">{{ $emp->full_name }} ({{ $emp->employee_number }})</option>
                 @endforeach
             </select>
         </div>

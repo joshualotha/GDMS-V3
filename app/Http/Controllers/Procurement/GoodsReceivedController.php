@@ -83,6 +83,7 @@ class GoodsReceivedController extends Controller
                     'grn_number' => ReferenceGenerator::generateGrnNumber(),
                     'supplier_id' => $validated['supplier_id'],
                     'purchase_order_id' => $validated['purchase_order_id'] ?? null,
+                    'received_date' => $validated['received_date'],
                     'notes' => $validated['notes'] ?? null,
                 ]);
 
@@ -110,7 +111,8 @@ class GoodsReceivedController extends Controller
                             'grn_full',
                             'GoodsReceived',
                             $grn->id,
-                            "GRN: {$grn->grn_number} - Full cylinders received"
+                            "GRN: {$grn->grn_number} - Full cylinders received",
+                            $grn->received_date
                         );
                     } else {
                         // Refill: we exchange empty cylinders for full ones from factory
@@ -122,7 +124,8 @@ class GoodsReceivedController extends Controller
                             'grn_refill',
                             'GoodsReceived',
                             $grn->id,
-                            "GRN: {$grn->grn_number} - Refill exchange"
+                            "GRN: {$grn->grn_number} - Refill exchange",
+                            $grn->received_date
                         );
                     }
                 }

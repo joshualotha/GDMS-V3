@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class SettingController extends Controller
 {
@@ -62,5 +64,44 @@ class SettingController extends Controller
         $user->save();
 
         return back()->with('success', 'Account updated successfully.');
+    }
+
+    /**
+     * TEMPORARY TESTING UTILITY — wipes every business-data table but leaves the
+     * `users` table (and Laravel's own infra tables) untouched, so the admin stays
+     * logged in and able to keep testing on a clean slate. Remove this before go-live.
+     */
+    public function resetAll(Request $request)
+    {
+        if (app()->environment('production')) {
+            abort(403, 'Reset is disabled in production.');
+        }
+
+        $request->validate([
+            'confirm' => 'required|in:RESET',
+        ]);
+
+        $preserve = [
+            'users',
+            'migrations',
+            'password_reset_tokens',
+            'sessions',
+            'cache',
+            'cache_locks',
+            'jobs',
+            'failed_jobs',
+            'job_batches',
+        ];
+
+        $tables = array_diff(Schema::getTableListing(), $preserve);
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        foreach ($tables as $table) {
+            DB::table($table)->truncate();
+        }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
+        return redirect()->route('settings.index')
+            ->with('success', 'All data reset. The admin account was left untouched.');
     }
 }

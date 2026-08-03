@@ -26,10 +26,12 @@ class SalesReportController extends Controller
 
         if ($request->status) {
             $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'cancelled');
         }
 
         $sales = $query->orderBy('sale_date', 'desc')->get();
-        
+
         $saleItems = SaleItem::whereHas('sale', function ($q) use ($dateFrom, $dateTo, $request) {
             $q->whereBetween('sale_date', [$dateFrom, $dateTo]);
             if ($request->outlet_id) {
@@ -37,6 +39,8 @@ class SalesReportController extends Controller
             }
             if ($request->status) {
                 $q->where('status', $request->status);
+            } else {
+                $q->where('status', '!=', 'cancelled');
             }
         })->with(['sale', 'cylinderType'])->get();
 
@@ -72,10 +76,12 @@ class SalesReportController extends Controller
 
         if ($request->status) {
             $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'cancelled');
         }
 
         $sales = $query->orderBy('sale_date', 'desc')->get();
-        
+
         $saleItems = SaleItem::whereHas('sale', function ($q) use ($dateFrom, $dateTo, $request) {
             $q->whereBetween('sale_date', [$dateFrom, $dateTo]);
             if ($request->outlet_id) {
@@ -83,6 +89,8 @@ class SalesReportController extends Controller
             }
             if ($request->status) {
                 $q->where('status', $request->status);
+            } else {
+                $q->where('status', '!=', 'cancelled');
             }
         })->with(['sale', 'cylinderType'])->get();
 

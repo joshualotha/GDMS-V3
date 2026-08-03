@@ -41,6 +41,7 @@ class OpeningStockController extends Controller
     {
         $validated = $request->validate([
             'outlet_id' => 'nullable|exists:outlets,id',
+            'stock_date' => 'required|date',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',
@@ -60,6 +61,7 @@ class OpeningStockController extends Controller
             $opening = OpeningStock::create([
                 'reference' => 'OP-' . date('Ymd') . '-' . str_pad(OpeningStock::count() + 1, 4, '0', STR_PAD_LEFT),
                 'outlet_id' => $outletId,
+                'stock_date' => $validated['stock_date'],
                 'notes' => $validated['notes'] ?? null,
             ]);
 
@@ -89,7 +91,8 @@ class OpeningStockController extends Controller
                             'opening',
                             'OpeningStock',
                             $opening->id,
-                            'Opening stock entry'
+                            'Opening stock entry',
+                            $validated['stock_date']
                         );
                     }
                 }

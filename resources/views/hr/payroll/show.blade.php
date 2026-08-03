@@ -13,9 +13,15 @@
                 @csrf
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Approve</button>
             </form>
-        @elseif($period->status == 'approved')
-            <form action="{{ route('payroll.markPaid', $period) }}" method="POST">
+            <form action="{{ route('payroll.destroy', $period) }}" method="POST" onsubmit="return confirm('Delete this draft payroll period? This cannot be undone.')">
                 @csrf
+                @method('DELETE')
+                <button type="submit" class="bg-gray-200 text-red-700 px-4 py-2 rounded hover:bg-gray-300">Delete Period</button>
+            </form>
+        @elseif($period->status == 'approved')
+            <form action="{{ route('payroll.markPaid', $period) }}" method="POST" class="flex items-center gap-2">
+                @csrf
+                <input type="date" name="paid_at" value="{{ date('Y-m-d') }}" required class="form-input">
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Mark as Paid</button>
             </form>
             <form action="{{ route('payroll.unapprove', $period) }}" method="POST" onsubmit="return confirm('Revert this payroll period back to draft? You will be able to edit allowances/deductions again.')">
@@ -25,12 +31,15 @@
         @endif
     </div>
     <div class="text-right">
-        <span class="px-2 py-1 text-xs rounded 
+        <span class="px-2 py-1 text-xs rounded
             {{ $period->status == 'draft' ? 'bg-yellow-100 text-yellow-800' : '' }}
             {{ $period->status == 'approved' ? 'bg-blue-100 text-blue-800' : '' }}
             {{ $period->status == 'paid' ? 'bg-green-100 text-green-800' : '' }}">
             {{ ucfirst($period->status) }}
         </span>
+        @if($period->paid_at)
+            <p class="text-xs text-gray-500 mt-1">Paid on {{ $period->paid_at->format('d/m/Y') }}</p>
+        @endif
     </div>
 </div>
 
@@ -78,9 +87,11 @@
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Allowance Note</th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Deductions</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deduction Note</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cylinder Loss</th>
                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Net Pay</th>
                 @if($period->status == 'draft')
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"></th>
                 @endif
             </tr>
         </thead>
@@ -94,7 +105,12 @@
                         <br><a href="{{ route('payslip.show', $item) }}" class="text-xs text-indigo-600 hover:underline">Payslip</a>
                         @endif
                     </td>
-                    <td class="px-4 py-4 text-right">{{ number_format($item->basic_salary, 2) }}</td>
+                    <td class="px-4 py-4 text-right">
+                        {{ number_format($item->basic_salary, 2) }}
+                        @if($item->cylinders_sold !== null)
+                            <br><span class="text-xs {{ $item->cylinders_sold >= $item->commission_target ? 'text-green-600' : 'text-orange-600' }}">{{ $item->cylinders_sold }} / {{ $item->commission_target }} cyl @ {{ number_format($item->commission_rate, 2) }}</span>
+                        @endif
+                    </td>
                     @if($period->status == 'draft')
                     <form action="{{ route('payroll.item.update', $item) }}" method="POST" class="flex gap-1">
                         @csrf
@@ -103,20 +119,43 @@
                         <td class="px-2 py-2"><input type="text" name="allowance_note" value="{{ $item->allowance_note }}" placeholder="Note" class="w-28 form-input-sm"></td>
                         <td class="px-2 py-2"><input type="number" name="deductions" step="0.01" value="{{ $item->deductions }}" class="w-24 form-input-sm text-right"></td>
                         <td class="px-2 py-2"><input type="text" name="deduction_note" value="{{ $item->deduction_note }}" placeholder="Note" class="w-28 form-input-sm"></td>
+                        <td class="px-4 py-4 text-right">
+                            @if($item->loss_deductions > 0)
+                                <span class="text-red-600">{{ number_format($item->loss_deductions, 2) }}</span>
+                                <br><span class="text-xs text-gray-400">{{ $item->loss_deduction_note }}</span>
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="px-4 py-4 text-right font-semibold">{{ number_format($item->net_pay, 2) }}</td>
                         <td class="px-2 py-2"><button type="submit" class="text-indigo-600 hover:underline">Save</button></td>
                     </form>
+                    <td class="px-2 py-2">
+                        <form action="{{ route('payroll.item.destroy', $item) }}" method="POST" onsubmit="return confirm('Remove {{ $item->employee->full_name }} from this payroll period?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline">Remove</button>
+                        </form>
+                    </td>
                     @else
                     <td class="px-4 py-4 text-right">{{ number_format($item->allowances, 2) }}</td>
                     <td class="px-4 py-4 text-xs">{{ $item->allowance_note ?? '-' }}</td>
                     <td class="px-4 py-4 text-right">{{ number_format($item->deductions, 2) }}</td>
                     <td class="px-4 py-4 text-xs">{{ $item->deduction_note ?? '-' }}</td>
+                    <td class="px-4 py-4 text-right">
+                        @if($item->loss_deductions > 0)
+                            <span class="text-red-600">{{ number_format($item->loss_deductions, 2) }}</span>
+                            <br><span class="text-xs text-gray-400">{{ $item->loss_deduction_note }}</span>
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td class="px-4 py-4 text-right font-semibold">{{ number_format($item->net_pay, 2) }}</td>
                     @endif
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ $period->status == 'draft' ? 8 : 7 }}" class="px-6 py-4 text-center text-gray-500">No employees in this period.</td>
+                    <td colspan="{{ $period->status == 'draft' ? 10 : 8 }}" class="px-6 py-4 text-center text-gray-500">No employees in this period.</td>
                 </tr>
             @endforelse
         </tbody>
@@ -128,8 +167,10 @@
                 <td class="px-4 py-3"></td>
                 <td class="px-4 py-3 text-right">{{ number_format($period->items->sum('deductions'), 2) }}</td>
                 <td class="px-4 py-3"></td>
+                <td class="px-4 py-3 text-right">{{ number_format($period->items->sum('loss_deductions'), 2) }}</td>
                 <td class="px-4 py-3 text-right">{{ number_format($period->items->sum('net_pay'), 2) }}</td>
                 @if($period->status == 'draft')
+                <td></td>
                 <td></td>
                 @endif
             </tr>

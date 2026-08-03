@@ -18,16 +18,16 @@ class ProcurementReportController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : Carbon::now()->endOfDay();
 
-        $query = GoodsReceived::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = GoodsReceived::whereBetween('received_date', [$dateFrom, $dateTo]);
 
         if ($request->supplier_id) {
             $query->where('supplier_id', $request->supplier_id);
         }
 
-        $goodsReceived = $query->orderBy('created_at', 'desc')->get();
+        $goodsReceived = $query->orderBy('received_date', 'desc')->get();
 
         $items = GoodsReceivedItem::whereHas('goodsReceived', function ($q) use ($dateFrom, $dateTo, $request) {
-            $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+            $q->whereBetween('received_date', [$dateFrom, $dateTo]);
             if ($request->supplier_id) {
                 $q->where('supplier_id', $request->supplier_id);
             }
@@ -53,16 +53,16 @@ class ProcurementReportController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : Carbon::now()->endOfDay();
 
-        $query = GoodsReceived::whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = GoodsReceived::whereBetween('received_date', [$dateFrom, $dateTo]);
 
         if ($request->supplier_id) {
             $query->where('supplier_id', $request->supplier_id);
         }
 
-        $goodsReceived = $query->orderBy('created_at', 'desc')->get();
+        $goodsReceived = $query->orderBy('received_date', 'desc')->get();
 
         $items = GoodsReceivedItem::whereHas('goodsReceived', function ($q) use ($dateFrom, $dateTo, $request) {
-            $q->whereBetween('created_at', [$dateFrom, $dateTo]);
+            $q->whereBetween('received_date', [$dateFrom, $dateTo]);
             if ($request->supplier_id) {
                 $q->where('supplier_id', $request->supplier_id);
             }

@@ -51,6 +51,12 @@
                     <input type="number" name="refill_price" value="{{ old('refill_price', $cylinderType->refill_price) }}" step="0.01" min="0" required class="form-input">
                 </div>
             </div>
+
+            <div class="form-group mt-4">
+                <label class="form-label">Price Effective From</label>
+                <input type="date" name="price_effective_from" value="{{ old('price_effective_from', date('Y-m-d')) }}" class="form-input">
+                <p class="form-hint">Used to date the price-change history entry if any price above is changed.</p>
+            </div>
         </div>
     </div>
 

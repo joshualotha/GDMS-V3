@@ -56,8 +56,30 @@
         </div>
 
         <div>
+            <label class="block text-sm font-medium text-gray-700">Pay Type *</label>
+            <select name="pay_type" id="pay_type" required class="mt-1 form-select" onchange="togglePayFields()">
+                <option value="salary" {{ $employee->pay_type == 'salary' ? 'selected' : '' }}>Salary</option>
+                <option value="commission" {{ $employee->pay_type == 'commission' ? 'selected' : '' }}>Commission (per cylinder sold)</option>
+            </select>
+        </div>
+
+        <div></div>
+
+        <div id="salary-field">
             <label class="block text-sm font-medium text-gray-700">Basic Salary *</label>
-            <input type="number" name="basic_salary" step="0.01" value="{{ $employee->basic_salary }}" required class="mt-1 form-input">
+            <input type="number" name="basic_salary" id="basic_salary" step="0.01" value="{{ $employee->basic_salary }}" class="mt-1 form-input">
+        </div>
+
+        <div id="commission-fields" class="hidden contents">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Price per Cylinder *</label>
+                <input type="number" name="commission_rate" id="commission_rate" step="0.01" value="{{ $employee->commission_rate }}" class="mt-1 form-input">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Monthly Target (cylinders)</label>
+                <input type="number" name="commission_target" id="commission_target" value="{{ $employee->commission_target ?? 1250 }}" min="1" class="mt-1 form-input">
+                <p class="text-xs text-gray-500 mt-1">At/above target: rate &times; cylinders sold. Below target: rate scales down by how far short they fell.</p>
+            </div>
         </div>
 
         <div>
@@ -75,4 +97,22 @@
         <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Update Employee</button>
     </div>
 </form>
+
+<script>
+function togglePayFields() {
+    var isCommission = document.getElementById('pay_type').value === 'commission';
+
+    document.getElementById('salary-field').classList.toggle('hidden', isCommission);
+    document.getElementById('commission-fields').classList.toggle('hidden', !isCommission);
+
+    var basicSalary = document.getElementById('basic_salary');
+    var commissionRate = document.getElementById('commission_rate');
+
+    basicSalary.disabled = isCommission;
+    basicSalary.required = !isCommission;
+    commissionRate.disabled = !isCommission;
+    commissionRate.required = isCommission;
+}
+document.addEventListener('DOMContentLoaded', togglePayFields);
+</script>
 @endsection

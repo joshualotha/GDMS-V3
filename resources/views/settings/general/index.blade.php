@@ -172,5 +172,47 @@
             </div>
         </form>
     </div>
+
+    {{-- Danger Zone: TEMPORARY testing utility, remove before go-live --}}
+    <div class="bg-white rounded-lg shadow-sm border border-red-200 p-6">
+        <div class="flex items-center gap-3 border-b border-red-100 pb-4 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Danger Zone</h3>
+                <p class="text-sm text-gray-500">Testing utility only &mdash; will be removed before go-live.</p>
+            </div>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-4">
+            Permanently deletes every record in the system &mdash; sales, stock, outlets, employees, payroll, everything &mdash;
+            except your admin login, which is left untouched so you stay signed in. This cannot be undone.
+        </p>
+
+        <button type="button" onclick="document.getElementById('resetAllModal').showModal()"
+            class="inline-flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+            Reset All Data
+        </button>
+    </div>
 </div>
+
+<dialog id="resetAllModal" class="rounded-lg shadow-lg p-6 w-full max-w-md">
+    <form action="{{ route('settings.reset-all') }}" method="POST">
+        @csrf
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Reset all data?</h3>
+        <p class="text-sm text-gray-600 mb-4">
+            This permanently deletes every sale, stock record, outlet, employee, payroll period, and everything else
+            except your admin account. There is no undo.
+        </p>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="font-mono font-bold">RESET</span> to confirm</label>
+        <input type="text" name="confirm" required autocomplete="off" class="form-input mb-4" placeholder="RESET">
+        <div class="flex gap-2 justify-end">
+            <button type="button" onclick="document.getElementById('resetAllModal').close()" class="px-4 py-2 text-gray-700 border rounded">Cancel</button>
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Reset Everything</button>
+        </div>
+    </form>
+</dialog>
 @endsection

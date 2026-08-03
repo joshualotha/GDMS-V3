@@ -56,7 +56,7 @@
         <tbody class="divide-y divide-gray-200">
             @forelse($movements as $movement)
                 <tr>
-                    <td class="px-4 py-2">{{ $movement->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="px-4 py-2">{{ ($movement->movement_date ?? $movement->created_at)->format('d/m/Y') }}</td>
                     <td class="px-4 py-2">{{ ucfirst($movement->transaction_type) }}</td>
                     <td class="px-4 py-2">{{ $movement->cylinderType->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-right {{ $movement->full_qty_change >= 0 ? 'text-green-600' : 'text-red-600' }}">

@@ -40,6 +40,15 @@
         </div>
 
         <div class="mt-4">
+            <label for="received_date" class="block text-sm font-medium text-gray-700">Received Date</label>
+            <input type="date" name="received_date" id="received_date" value="{{ old('received_date', date('Y-m-d')) }}" required
+                class="mt-1 form-input">
+            @error('received_date')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div class="mt-4">
             <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
             <textarea name="notes" id="notes" rows="2"
                 class="mt-1 form-input">{{ old('notes') }}</textarea>

@@ -25,7 +25,7 @@
         </div>
         <div>
             <p class="text-sm text-gray-500">Date</p>
-            <p class="font-medium">{{ $purchaseOrder->created_at->format('d/m/Y') }}</p>
+            <p class="font-medium">{{ ($purchaseOrder->order_date ?? $purchaseOrder->created_at)->format('d/m/Y') }}</p>
         </div>
         <div>
             <p class="text-sm text-gray-500">Total Cost</p>

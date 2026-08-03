@@ -256,6 +256,11 @@
         /* Mobile Menu Toggle */
         .mobile-menu-btn { display: none; width: 40px; height: 40px; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--text-primary); border-radius: var(--radius-md); }
         .mobile-menu-btn:hover { background: var(--bg-subtle); }
+
+        /* Universal back button */
+        .btn-back { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: 1.5px solid var(--border); border-radius: var(--radius-md); cursor: pointer; color: var(--text-secondary); flex-shrink: 0; }
+        .btn-back:hover { background: var(--bg-subtle); border-color: var(--border-strong); color: var(--text-primary); }
+        .btn-back svg { width: 18px; height: 18px; }
         .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 45; }
         
         /* Responsive Breakpoints */
@@ -343,19 +348,17 @@
                         'sales' => [
                             'label' => 'Sales',
                             'icon' => '<path d="M3 3v18h18"/><polyline points="7 15 11 10 15 13 20 6"/>',
-                            'active' => request()->is('sales*', 'approvals*', 'reports/sales*', 'reports/cash*', 'settings/outlets*'),
+                            'active' => request()->is('sales*', 'approvals*', 'settings/outlets*'),
                             'items' => [
                                 ['sales', 'Sales', 'sales*'],
                                 ['approvals', 'Needs Attention', 'approvals*'],
                                 ['settings/outlets', 'Outlets', 'settings/outlets*'],
-                                ['reports/sales', 'Sales Report', 'reports/sales*'],
-                                ['reports/cash', 'Cash Reconcile', 'reports/cash*'],
                             ],
                         ],
-                        'warehouse' => [
-                            'label' => 'Warehouse',
+                        'cylinders' => [
+                            'label' => 'Cylinders',
                             'icon' => '<path d="M3 7l2-4h14l2 4"/><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M9 12h6"/>',
-                            'active' => request()->is('warehouse/stock-ledger*', 'sales/outlet-stock*', 'warehouse/opening-stock*', 'warehouse/movements*', 'warehouse/adjustments*', 'warehouse/procurement*', 'reports/stock*', 'reports/stock-movement*', 'reports/procurement*'),
+                            'active' => request()->is('warehouse/stock-ledger*', 'sales/outlet-stock*', 'warehouse/opening-stock*', 'warehouse/movements*', 'warehouse/adjustments*', 'warehouse/procurement*'),
                             'items' => [
                                 ['warehouse/stock-ledger', 'Stock Ledger', 'warehouse/stock-ledger*'],
                                 ['sales/outlet-stock', 'Current Stock', 'sales/outlet-stock*'],
@@ -363,9 +366,51 @@
                                 ['warehouse/movements', 'Movements', 'warehouse/movements*'],
                                 ['warehouse/adjustments', 'Adjustments', 'warehouse/adjustments*'],
                                 ['warehouse/procurement', 'Procurement (Receiving)', 'warehouse/procurement*'],
+                            ],
+                        ],
+                        'accessories' => [
+                            'label' => 'Accessories',
+                            'icon' => '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+                            'active' => request()->is('warehouse/accessory-*', 'settings/accessories*'),
+                            'items' => [
+                                ['warehouse/accessory-stock', 'Accessory Stock', 'warehouse/accessory-stock*'],
+                                ['warehouse/accessory-purchases', 'Accessory Purchases', 'warehouse/accessory-purchases*'],
+                                ['warehouse/accessory-transfers', 'Accessory Transfers', 'warehouse/accessory-transfers*'],
+                                ['settings/accessories', 'Manage Accessories', 'settings/accessories*'],
+                            ],
+                        ],
+                        'hr' => [
+                            'label' => 'HR',
+                            'icon' => '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+                            'active' => request()->is('hr/*', 'payroll*'),
+                            'items' => [
+                                ['hr/employees', 'Employees', 'hr/employees*'],
+                                ['payroll', 'Payroll', 'payroll*'],
+                            ],
+                        ],
+                        'finance' => [
+                            'label' => 'Finance',
+                            'icon' => '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+                            'active' => request()->is('expenses*'),
+                            'items' => [
+                                ['expenses', 'Expenses', 'expenses*'],
+                            ],
+                        ],
+                        'reports' => [
+                            'label' => 'Reports',
+                            'icon' => '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+                            'active' => request()->is('reports/*'),
+                            'items' => [
+                                ['reports/sales', 'Sales Report', 'reports/sales*'],
+                                ['reports/cash', 'Cash Reconcile', 'reports/cash*'],
                                 ['reports/stock', 'Stock Report', 'reports/stock*'],
                                 ['reports/stock-movement', 'Stock Movement Report', 'reports/stock-movement*'],
                                 ['reports/procurement', 'Procurement Report', 'reports/procurement*'],
+                                ['reports/fuel', 'Fuel Report', 'reports/fuel*'],
+                                ['reports/asset', 'Asset Register Report', 'reports/asset*'],
+                                ['reports/depreciation', 'Depreciation Report', 'reports/depreciation*'],
+                                ['reports/payroll', 'Payroll Report', 'reports/payroll*'],
+                                ['reports/profit-loss', 'Profit & Loss', 'reports/profit-loss*'],
                             ],
                         ],
                         'fuel' => [
@@ -374,38 +419,16 @@
                             'active' => request()->is('fuel/*'),
                             'items' => [
                                 ['fuel/purchases', 'Purchases', 'fuel/purchases*'],
-                                ['fuel/issues', 'Issues', 'fuel/issues*'],
+                                ['fuel/issues', 'Issues (History)', 'fuel/issues*'],
                                 ['fuel/stock', 'Fuel Stock', 'fuel/stock*'],
-                                ['reports/fuel', 'Fuel Report', 'reports/fuel*'],
                             ],
                         ],
                         'assets' => [
                             'label' => 'Assets',
                             'icon' => '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M3 13h18"/>',
-                            'active' => request()->is('assets*', 'reports/asset*', 'reports/depreciation*'),
+                            'active' => request()->is('assets*'),
                             'items' => [
                                 ['assets', 'Register', 'assets*'],
-                                ['reports/asset', 'Asset Register Report', 'reports/asset*'],
-                                ['reports/depreciation', 'Depreciation Report', 'reports/depreciation*'],
-                            ],
-                        ],
-                        'hr' => [
-                            'label' => 'HR',
-                            'icon' => '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
-                            'active' => request()->is('hr/*', 'payroll*', 'reports/payroll*'),
-                            'items' => [
-                                ['hr/employees', 'Employees', 'hr/employees*'],
-                                ['payroll', 'Payroll', 'payroll*'],
-                                ['reports/payroll', 'Payroll Report', 'reports/payroll*'],
-                            ],
-                        ],
-                        'finance' => [
-                            'label' => 'Finance',
-                            'icon' => '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
-                            'active' => request()->is('expenses*', 'reports/profit-loss*'),
-                            'items' => [
-                                ['expenses', 'Expenses', 'expenses*'],
-                                ['reports/profit-loss', 'Profit & Loss', 'reports/profit-loss*'],
                             ],
                         ],
                         'configuration' => [
@@ -455,6 +478,11 @@
                             <path d="M3 12h18M3 6h18M3 18h18"/>
                         </svg>
                     </button>
+                    @unless(request()->is('dashboard'))
+                        <button type="button" class="btn-back" onclick="goBack()" title="Back" aria-label="Back">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                        </button>
+                    @endunless
                     <div class="topbar-title">@yield('header', 'Dashboard')</div>
                     <div class="topbar-breadcrumb">@yield('breadcrumb', 'Welcome back')</div>
                 </div>
@@ -496,6 +524,14 @@
         </div>
     </div>
     <script>
+        function goBack() {
+            if (document.referrer && document.referrer.indexOf(window.location.origin) === 0) {
+                history.back();
+            } else {
+                window.location.href = '{{ url('dashboard') }}';
+            }
+        }
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
             document.querySelector('.sidebar-overlay').classList.toggle('open');

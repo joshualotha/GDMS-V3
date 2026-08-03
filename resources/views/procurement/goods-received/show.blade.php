@@ -29,7 +29,7 @@
         </div>
         <div>
             <p class="text-sm text-gray-500">Date</p>
-            <p class="font-medium">{{ $goodsReceived->created_at->format('d/m/Y') }}</p>
+            <p class="font-medium">{{ ($goodsReceived->received_date ?? $goodsReceived->created_at)->format('d/m/Y') }}</p>
         </div>
     </div>
     @if($goodsReceived->notes)

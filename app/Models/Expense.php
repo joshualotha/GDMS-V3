@@ -11,6 +11,7 @@ class Expense extends Model
         'expense_number',
         'expense_category_id',
         'asset_id',
+        'fuel_purchase_id',
         'expense_date',
         'description',
         'amount',
@@ -30,5 +31,10 @@ class Expense extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(CompanyAsset::class, 'asset_id');
+    }
+
+    public function fuelPurchase(): BelongsTo
+    {
+        return $this->belongsTo(FuelPurchase::class);
     }
 }

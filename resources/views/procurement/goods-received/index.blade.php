@@ -46,7 +46,7 @@
                             <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-800">Cancelled</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $grn->created_at->format('d/m/Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ ($grn->received_date ?? $grn->created_at)->format('d/m/Y') }}</td>
                     <td class="px-6 py-4 text-center">
                         <a href="{{ route('goods-received.show', $grn) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                     </td>

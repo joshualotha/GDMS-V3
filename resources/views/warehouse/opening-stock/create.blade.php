@@ -32,6 +32,10 @@
                 </select>
                 <p class="form-hint">Select an outlet or leave empty for main store</p>
             </div>
+            <div class="form-group">
+                <label for="stock_date" class="form-label">Date *</label>
+                <input type="date" name="stock_date" id="stock_date" value="{{ old('stock_date', date('Y-m-d')) }}" required class="form-input">
+            </div>
         </div>
     </div>
 

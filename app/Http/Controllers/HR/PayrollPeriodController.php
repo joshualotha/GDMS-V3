@@ -88,8 +88,12 @@ class PayrollPeriodController extends Controller
 
     public function markPaid(Request $request, PayrollPeriod $period)
     {
+        $validated = $request->validate([
+            'paid_at' => 'required|date',
+        ]);
+
         try {
-            $this->payrollService->markAsPaid($period);
+            $this->payrollService->markAsPaid($period, $validated['paid_at']);
             return redirect()->back()
                 ->with('success', 'Payroll period marked as paid.');
         } catch (\Exception $e) {
@@ -109,6 +113,18 @@ class PayrollPeriodController extends Controller
             $this->payrollService->addEmployeeToPeriod($period, $employee);
             return redirect()->back()
                 ->with('success', 'Employee added to payroll period.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function destroy(PayrollPeriod $period)
+    {
+        try {
+            $this->payrollService->deletePeriod($period);
+            return redirect()->route('payroll.index')
+                ->with('success', 'Payroll period deleted.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', $e->getMessage());

@@ -42,6 +42,7 @@ class ProcurementController extends Controller
     {
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'received_date' => 'required|date',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',
@@ -63,6 +64,7 @@ class ProcurementController extends Controller
                 $grn = GoodsReceived::create([
                     'grn_number' => 'GRN-'.date('Ymd').'-'.str_pad(GoodsReceived::count() + 1, 4, '0', STR_PAD_LEFT),
                     'supplier_id' => $validated['supplier_id'],
+                    'received_date' => $validated['received_date'],
                     'notes' => $validated['notes'] ?? null,
                     'status' => 'completed',
                 ]);
@@ -89,7 +91,8 @@ class ProcurementController extends Controller
                             'grn_full',
                             'GoodsReceived',
                             $grn->id,
-                            "GRN {$grn->grn_number} - From {$supplier->name}"
+                            "GRN {$grn->grn_number} - From {$supplier->name}",
+                            $grn->received_date
                         );
                     } else {
                         $this->stockService->updateMainStock(
@@ -99,7 +102,8 @@ class ProcurementController extends Controller
                             'grn_refill',
                             'GoodsReceived',
                             $grn->id,
-                            "GRN {$grn->grn_number} - Refill from {$supplier->name}"
+                            "GRN {$grn->grn_number} - Refill from {$supplier->name}",
+                            $grn->received_date
                         );
                     }
                 }
@@ -109,6 +113,57 @@ class ProcurementController extends Controller
                 return redirect()->route('warehouse.procurement')
                     ->with('success', 'Procurement completed and stock updated.');
             });
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function cancel(Request $request, GoodsReceived $goodsReceived)
+    {
+        if ($goodsReceived->status === 'cancelled') {
+            return back()->with('error', 'This procurement is already cancelled.');
+        }
+
+        $validated = $request->validate(['reason' => 'required|string']);
+
+        try {
+            DB::transaction(function () use ($goodsReceived, $validated) {
+                $goodsReceived->load('items');
+
+                foreach ($goodsReceived->items as $item) {
+                    if ($item->purchase_type === 'full') {
+                        $this->stockService->updateMainStock(
+                            $item->cylinder_type_id,
+                            -$item->quantity,
+                            0,
+                            'grn_cancel',
+                            'GoodsReceived',
+                            $goodsReceived->id,
+                            "Cancellation of GRN {$goodsReceived->grn_number}",
+                            $goodsReceived->received_date
+                        );
+                    } else {
+                        $this->stockService->updateMainStock(
+                            $item->cylinder_type_id,
+                            -$item->quantity,
+                            $item->quantity,
+                            'grn_cancel',
+                            'GoodsReceived',
+                            $goodsReceived->id,
+                            "Cancellation of GRN {$goodsReceived->grn_number}",
+                            $goodsReceived->received_date
+                        );
+                    }
+                }
+
+                $goodsReceived->update([
+                    'status' => 'cancelled',
+                    'notes' => trim(($goodsReceived->notes ?? '')."\n[Cancelled]: ".$validated['reason']),
+                ]);
+            });
+
+            return redirect()->route('warehouse.procurement')
+                ->with('success', 'Procurement cancelled and stock reversed.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

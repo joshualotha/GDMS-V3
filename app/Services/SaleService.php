@@ -3,11 +3,15 @@
 namespace App\Services;
 
 use App\Helpers\ReferenceGenerator;
+use App\Models\Accessory;
+use App\Models\AccessoryStockLedger;
 use App\Models\CylinderType;
 use App\Models\Sale;
+use App\Models\SaleAccessoryItem;
 use App\Models\SaleItem;
 use App\Models\StockMainLedger;
 use App\Models\StockOutlet;
+use App\Models\StockOutletAccessory;
 use Illuminate\Support\Facades\DB;
 
 class SaleService
@@ -16,12 +20,13 @@ class SaleService
         int $outletId,
         string $saleDate,
         array $items,
+        array $accessoryItems = [],
         ?string $notes = null,
         ?float $cashSubmitted = null,
         ?string $receiptPath = null,
         ?int $submittedBy = null
     ): Sale {
-        return DB::transaction(function () use ($outletId, $saleDate, $items, $notes, $cashSubmitted, $receiptPath, $submittedBy) {
+        return DB::transaction(function () use ($outletId, $saleDate, $items, $accessoryItems, $notes, $cashSubmitted, $receiptPath, $submittedBy) {
             $sale = Sale::create([
                 'sale_number' => ReferenceGenerator::generateSaleNumber(),
                 'outlet_id' => $outletId,
@@ -100,6 +105,56 @@ class SaleService
                 }
             }
 
+            foreach ($accessoryItems as $item) {
+                $accessory = Accessory::find($item['accessory_id']);
+
+                $unitPrice = floatval($accessory->sale_price);
+                $unitCost = floatval($accessory->cost_price);
+                $lineTotal = floatval($item['quantity']) * $unitPrice;
+                $lineCost = floatval($item['quantity']) * $unitCost;
+
+                SaleAccessoryItem::create([
+                    'sale_id' => $sale->id,
+                    'accessory_id' => $item['accessory_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $unitPrice,
+                    'unit_cost' => $unitCost,
+                    'total_price' => $lineTotal,
+                    'total_cost' => $lineCost,
+                    'gross_profit' => $lineTotal - $lineCost,
+                ]);
+
+                $totalPrice += $lineTotal;
+                $totalCost += $lineCost;
+
+                $outletStock = StockOutletAccessory::where('outlet_id', $outletId)
+                    ->where('accessory_id', $item['accessory_id'])
+                    ->first();
+                $outletAvailable = $outletStock ? $outletStock->qty : 0;
+
+                if ($item['quantity'] > $outletAvailable) {
+                    throw new \Exception("Insufficient stock for {$accessory->name}. Available: {$outletAvailable}, Requested: {$item['quantity']}");
+                }
+
+                $outletStock = StockOutletAccessory::firstOrCreate(
+                    ['outlet_id' => $outletId, 'accessory_id' => $item['accessory_id']],
+                    ['qty' => 0]
+                );
+                $outletStock->decrement('qty', $item['quantity']);
+
+                AccessoryStockLedger::create([
+                    'accessory_id' => $item['accessory_id'],
+                    'outlet_id' => $outletId,
+                    'movement_date' => $saleDate,
+                    'qty_change' => -$item['quantity'],
+                    'qty_after' => $outletStock->qty,
+                    'transaction_type' => 'sale',
+                    'reference_type' => 'sale',
+                    'reference_id' => $sale->id,
+                    'note' => "Sale {$sale->sale_number} (Outlet)",
+                ]);
+            }
+
             $data = [
                 'total_price' => floatval($totalPrice),
                 'total_cost' => floatval($totalCost),
@@ -118,6 +173,79 @@ class SaleService
             }
 
             $sale->update($data);
+
+            return $sale;
+        });
+    }
+
+    public function cancelSale(Sale $sale, string $reason): Sale
+    {
+        if ($sale->status === 'cancelled') {
+            throw new \Exception('This sale is already cancelled.');
+        }
+
+        return DB::transaction(function () use ($sale, $reason) {
+            $sale->load('items.cylinderType', 'accessoryItems.accessory');
+
+            foreach ($sale->items as $item) {
+                $outletStock = StockOutlet::where('outlet_id', $sale->outlet_id)
+                    ->where('cylinder_type_id', $item->cylinder_type_id)
+                    ->first();
+
+                if ($item->sale_type === 'refill' && $outletStock && $outletStock->empty_qty < $item->quantity) {
+                    throw new \Exception("Cannot cancel: reversing this sale would take {$item->cylinderType->name} empty stock below 0 (likely already returned to main store).");
+                }
+
+                $outletStock = StockOutlet::firstOrCreate(
+                    ['outlet_id' => $sale->outlet_id, 'cylinder_type_id' => $item->cylinder_type_id],
+                    ['full_qty' => 0, 'empty_qty' => 0]
+                );
+
+                $outletStock->increment('full_qty', $item->quantity);
+                if ($item->sale_type === 'refill') {
+                    $outletStock->decrement('empty_qty', $item->quantity);
+                }
+
+                StockMainLedger::create([
+                    'cylinder_type_id' => $item->cylinder_type_id,
+                    'full_qty_change' => $item->quantity,
+                    'empty_qty_change' => $item->sale_type === 'refill' ? -$item->quantity : 0,
+                    'full_qty_after' => $outletStock->full_qty,
+                    'empty_qty_after' => $outletStock->empty_qty,
+                    'transaction_type' => 'sale_cancel',
+                    'reference_type' => 'sale',
+                    'reference_id' => $sale->id,
+                    'note' => "Cancellation of Sale {$sale->sale_number}",
+                    'outlet_id' => $sale->outlet_id,
+                    'movement_date' => now()->toDateString(),
+                ]);
+            }
+
+            foreach ($sale->accessoryItems as $item) {
+                $outletStock = StockOutletAccessory::firstOrCreate(
+                    ['outlet_id' => $sale->outlet_id, 'accessory_id' => $item->accessory_id],
+                    ['qty' => 0]
+                );
+
+                $outletStock->increment('qty', $item->quantity);
+
+                AccessoryStockLedger::create([
+                    'accessory_id' => $item->accessory_id,
+                    'outlet_id' => $sale->outlet_id,
+                    'movement_date' => now()->toDateString(),
+                    'qty_change' => $item->quantity,
+                    'qty_after' => $outletStock->qty,
+                    'transaction_type' => 'sale_cancel',
+                    'reference_type' => 'sale',
+                    'reference_id' => $sale->id,
+                    'note' => "Cancellation of Sale {$sale->sale_number}",
+                ]);
+            }
+
+            $sale->update([
+                'status' => 'cancelled',
+                'notes' => trim(($sale->notes ?? '')."\n[Cancelled]: ".$reason),
+            ]);
 
             return $sale;
         });

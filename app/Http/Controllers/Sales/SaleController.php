@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
+use App\Models\Accessory;
 use App\Models\CylinderType;
 use App\Models\Outlet;
 use App\Models\Sale;
 use App\Models\StockOutlet;
+use App\Models\StockOutletAccessory;
 use App\Services\SaleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,15 +52,20 @@ class SaleController extends Controller
     {
         $outlets = Outlet::where('is_active', true)->orderBy('name')->get();
         $cylinderTypes = CylinderType::where('is_active', true)->orderBy('size_kg')->get();
+        $accessories = Accessory::where('is_active', true)->orderBy('name')->get();
 
         $outletStock = [];
+        $outletAccessoryStock = [];
         foreach ($outlets as $outlet) {
             $outletStock[$outlet->id] = StockOutlet::where('outlet_id', $outlet->id)
                 ->pluck('full_qty', 'cylinder_type_id')
                 ->toArray();
+            $outletAccessoryStock[$outlet->id] = StockOutletAccessory::where('outlet_id', $outlet->id)
+                ->pluck('qty', 'accessory_id')
+                ->toArray();
         }
 
-        return view('sales.create', compact('outlets', 'cylinderTypes', 'outletStock'));
+        return view('sales.create', compact('outlets', 'cylinderTypes', 'accessories', 'outletStock', 'outletAccessoryStock'));
     }
 
     public function store(Request $request)
@@ -67,13 +74,20 @@ class SaleController extends Controller
             'outlet_id' => 'required|exists:outlets,id',
             'sale_date' => 'required|date',
             'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
+            'items' => 'nullable|array',
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',
             'items.*.sale_type' => 'required|in:full,refill',
             'items.*.quantity' => 'required|integer|min:1',
+            'accessory_items' => 'nullable|array',
+            'accessory_items.*.accessory_id' => 'required|exists:accessories,id',
+            'accessory_items.*.quantity' => 'required|integer|min:1',
             'cash_submitted' => 'nullable|numeric|min:0',
             'cash_receipt_image' => 'nullable|file|image',
         ]);
+
+        if (empty($validated['items']) && empty($validated['accessory_items'])) {
+            return back()->with('error', 'Please add at least one cylinder or accessory to the sale.')->withInput();
+        }
 
         $receiptPath = null;
         if ($request->hasFile('cash_receipt_image')) {
@@ -84,7 +98,8 @@ class SaleController extends Controller
             $sale = $this->saleService->createSale(
                 $validated['outlet_id'],
                 $validated['sale_date'],
-                $validated['items'],
+                $validated['items'] ?? [],
+                $validated['accessory_items'] ?? [],
                 $validated['notes'] ?? null,
                 isset($validated['cash_submitted']) ? (float) $validated['cash_submitted'] : null,
                 $receiptPath,
@@ -103,7 +118,7 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load(['outlet', 'items.cylinderType']);
+        $sale->load(['outlet', 'items.cylinderType', 'accessoryItems.accessory']);
 
         return view('sales.show', compact('sale'));
     }
@@ -141,5 +156,20 @@ class SaleController extends Controller
         ]);
 
         return back()->with('success', 'Cash submitted successfully.');
+    }
+
+    public function cancel(Request $request, Sale $sale)
+    {
+        $validated = $request->validate([
+            'reason' => 'required|string',
+        ]);
+
+        try {
+            $this->saleService->cancelSale($sale, $validated['reason']);
+
+            return redirect()->route('sales.show', $sale)->with('success', 'Sale cancelled and stock reversed.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

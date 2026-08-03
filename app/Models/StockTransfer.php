@@ -13,8 +13,13 @@ class StockTransfer extends Model
     protected $fillable = [
         'transfer_number',
         'outlet_id',
+        'transfer_date',
         'status',
         'notes',
+    ];
+
+    protected $casts = [
+        'transfer_date' => 'date',
     ];
 
     public function outlet(): BelongsTo

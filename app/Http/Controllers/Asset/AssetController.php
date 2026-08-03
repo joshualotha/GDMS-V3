@@ -6,8 +6,8 @@ use App\Helpers\ReferenceGenerator;
 use App\Http\Controllers\Controller;
 use App\Models\AssetCategory;
 use App\Models\CompanyAsset;
+use App\Models\Employee;
 use App\Models\Outlet;
-use App\Models\User;
 use App\Services\DepreciationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class AssetController extends Controller
     {
         $categories = AssetCategory::orderBy('name')->get();
         $outlets = Outlet::orderBy('name')->get();
-        $employees = User::orderBy('name')->get();
+        $employees = Employee::where('status', 'active')->orderBy('first_name')->get();
         $categoryWarning = $categories->isEmpty() ? 'Please create at least one Asset Category in Settings before adding assets.' : null;
 
         return view('assets.create', compact('categories', 'outlets', 'employees', 'categoryWarning'));
@@ -45,7 +45,7 @@ class AssetController extends Controller
             'purchase_cost' => 'required|numeric|min:0',
             'depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'assigned_to_outlet' => 'nullable|exists:outlets,id',
-            'assigned_to_employee' => 'nullable|exists:users,id',
+            'assigned_to_employee' => 'nullable|exists:employees,id',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -96,7 +96,7 @@ class AssetController extends Controller
     {
         $categories = AssetCategory::orderBy('name')->get();
         $outlets = Outlet::orderBy('name')->get();
-        $employees = User::orderBy('name')->get();
+        $employees = Employee::where('status', 'active')->orderBy('first_name')->get();
 
         return view('assets.edit', compact('asset', 'categories', 'outlets', 'employees'));
     }
@@ -117,7 +117,7 @@ class AssetController extends Controller
             'purchase_cost' => 'required|numeric|min:0',
             'depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'assigned_to_outlet' => 'nullable|exists:outlets,id',
-            'assigned_to_employee' => 'nullable|exists:users,id',
+            'assigned_to_employee' => 'nullable|exists:employees,id',
         ]);
 
         $data = [
@@ -166,6 +166,11 @@ class AssetController extends Controller
         if ($asset->status === 'disposed') {
             return redirect()->route('assets.index')
                 ->with('error', 'Cannot delete a disposed asset.');
+        }
+
+        if ($asset->outletAsCar()->exists()) {
+            return redirect()->route('assets.index')
+                ->with('error', 'Cannot delete this asset — it is the vehicle for outlet "' . $asset->outletAsCar->name . '". Delete or re-link that outlet first.');
         }
 
         $asset->delete();

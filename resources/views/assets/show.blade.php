@@ -17,6 +17,13 @@
                 <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm">Reactivate</button>
             </form>
         @endif
+        @if($asset->status != 'disposed')
+            <form action="{{ route('assets.destroy', $asset) }}" method="POST" onsubmit="return confirm('Delete this asset permanently? This cannot be undone.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="bg-gray-200 text-red-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">Delete Asset</button>
+            </form>
+        @endif
     </div>
 </div>
 
@@ -59,7 +66,7 @@
         </div>
         <div>
             <p class="text-xs text-gray-500 uppercase">Location</p>
-            <p class="font-medium">{{ $asset->outlet->name ?? $asset->employee->name ?? 'HQ' }}</p>
+            <p class="font-medium">{{ $asset->outlet->name ?? $asset->employee->full_name ?? 'HQ' }}</p>
         </div>
         <div>
             <p class="text-xs text-gray-500 uppercase">Serial Number</p>

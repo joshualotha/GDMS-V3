@@ -15,6 +15,26 @@
     </div>
 
     <div>
+        <label for="outlet_id" class="block text-sm font-medium text-gray-700">Vehicle</label>
+        <select name="outlet_id" id="outlet_id" required
+            class="mt-1 form-select">
+            <option value="">Select vehicle</option>
+            @foreach($vehicles as $vehicle)
+                <option value="{{ $vehicle->id }}">{{ $vehicle->name }}{{ $vehicle->plate_number ? ' ('.$vehicle->plate_number.')' : '' }}</option>
+            @endforeach
+        </select>
+        @if($vehicles->isEmpty())
+            <p class="text-xs text-red-600 mt-1">No active car outlets exist yet. <a href="{{ route('outlets.create') }}" class="underline">Add one first</a>.</p>
+        @endif
+    </div>
+
+    <div>
+        <label for="odometer_km" class="block text-sm font-medium text-gray-700">Odometer Reading (km)</label>
+        <input type="number" name="odometer_km" id="odometer_km" min="0" required
+            class="mt-1 form-input">
+    </div>
+
+    <div>
         <label for="fuel_type" class="block text-sm font-medium text-gray-700">Fuel Type</label>
         <select name="fuel_type" id="fuel_type" required
             class="mt-1 form-select">
@@ -26,19 +46,19 @@
 
     <div class="grid grid-cols-2 gap-4">
         <div>
-            <label for="litres" class="block text-sm font-medium text-gray-700">Litres</label>
+            <label for="litres" class="block text-sm font-medium text-gray-700">Litres Received</label>
             <input type="number" name="litres" id="litres" step="0.01" min="0" required
                 class="mt-1 form-input">
         </div>
         <div>
-            <label for="unit_cost" class="block text-sm font-medium text-gray-700">Unit Cost</label>
-            <input type="number" name="unit_cost" id="unit_cost" step="0.01" min="0" required
+            <label for="total_cost" class="block text-sm font-medium text-gray-700">Amount Paid (Cash)</label>
+            <input type="number" name="total_cost" id="total_cost" step="0.01" min="0" required
                 class="mt-1 form-input">
         </div>
     </div>
 
     <div>
-        <label for="supplier_id" class="block text-sm font-medium text-gray-700">Supplier</label>
+        <label for="supplier_id" class="block text-sm font-medium text-gray-700">Petrol Station (optional)</label>
         <select name="supplier_id" id="supplier_id"
             class="mt-1 form-select">
             <option value="">Select Supplier</option>

@@ -25,6 +25,10 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Date <span class="form-label-required">*</span></label>
+                    <input type="date" name="movement_date" value="{{ old('movement_date', date('Y-m-d')) }}" required class="form-input">
+                </div>
+                <div class="form-group">
                     <label class="form-label">Notes</label>
                     <input type="text" name="notes" class="form-input" placeholder="Optional notes">
                 </div>

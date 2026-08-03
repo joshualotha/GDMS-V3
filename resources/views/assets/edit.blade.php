@@ -83,7 +83,7 @@
             <select name="assigned_to_employee" class="mt-1 form-select">
                 <option value="">None</option>
                 @foreach($employees as $emp)
-                <option value="{{ $emp->id }}" {{ $asset->assigned_to_employee == $emp->id ? 'selected' : '' }}>{{ $emp->name }}</option>
+                <option value="{{ $emp->id }}" {{ $asset->assigned_to_employee == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }} ({{ $emp->employee_number }})</option>
                 @endforeach
             </select>
         </div>

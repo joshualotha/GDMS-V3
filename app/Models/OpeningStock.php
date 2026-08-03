@@ -13,7 +13,12 @@ class OpeningStock extends Model
     protected $fillable = [
         'reference',
         'outlet_id',
+        'stock_date',
         'notes',
+    ];
+
+    protected $casts = [
+        'stock_date' => 'date',
     ];
 
     public function items(): HasMany

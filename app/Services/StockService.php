@@ -16,9 +16,10 @@ class StockService
         string $transactionType,
         ?string $referenceType = null,
         ?int $referenceId = null,
-        ?string $note = null
+        ?string $note = null,
+        ?string $movementDate = null
     ): void {
-        DB::transaction(function () use ($cylinderTypeId, $fullQtyChange, $emptyQtyChange, $transactionType, $referenceType, $referenceId, $note) {
+        DB::transaction(function () use ($cylinderTypeId, $fullQtyChange, $emptyQtyChange, $transactionType, $referenceType, $referenceId, $note, $movementDate) {
             $stockMain = StockMain::firstOrCreate(
                 ['cylinder_type_id' => $cylinderTypeId],
                 ['full_qty' => 0, 'empty_qty' => 0]
@@ -42,6 +43,7 @@ class StockService
 
             StockMainLedger::create([
                 'cylinder_type_id' => $cylinderTypeId,
+                'movement_date' => $movementDate ?? now()->toDateString(),
                 'full_qty_change' => $fullQtyChange,
                 'empty_qty_change' => $emptyQtyChange,
                 'full_qty_after' => $newFullQty,
@@ -62,9 +64,10 @@ class StockService
         string $transactionType,
         ?string $referenceType = null,
         ?int $referenceId = null,
-        ?string $note = null
+        ?string $note = null,
+        ?string $movementDate = null
     ): void {
-        DB::transaction(function () use ($outletId, $cylinderTypeId, $fullQtyChange, $emptyQtyChange, $transactionType, $referenceType, $referenceId, $note) {
+        DB::transaction(function () use ($outletId, $cylinderTypeId, $fullQtyChange, $emptyQtyChange, $transactionType, $referenceType, $referenceId, $note, $movementDate) {
             $stockOutlet = StockOutlet::firstOrCreate(
                 ['outlet_id' => $outletId, 'cylinder_type_id' => $cylinderTypeId],
                 ['full_qty' => 0, 'empty_qty' => 0]
@@ -89,6 +92,7 @@ class StockService
             StockMainLedger::create([
                 'outlet_id' => $outletId,
                 'cylinder_type_id' => $cylinderTypeId,
+                'movement_date' => $movementDate ?? now()->toDateString(),
                 'full_qty_change' => $fullQtyChange,
                 'empty_qty_change' => $emptyQtyChange,
                 'full_qty_after' => $newFullQty,

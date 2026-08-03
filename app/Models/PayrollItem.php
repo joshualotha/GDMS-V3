@@ -13,17 +13,24 @@ class PayrollItem extends Model
         'payroll_period_id',
         'employee_id',
         'basic_salary',
+        'cylinders_sold',
+        'commission_rate',
+        'commission_target',
         'allowances',
         'allowance_note',
         'deductions',
         'deduction_note',
+        'loss_deductions',
+        'loss_deduction_note',
         'net_pay',
     ];
 
     protected $casts = [
         'basic_salary' => 'decimal:2',
+        'commission_rate' => 'decimal:2',
         'allowances' => 'decimal:2',
         'deductions' => 'decimal:2',
+        'loss_deductions' => 'decimal:2',
         'net_pay' => 'decimal:2',
     ];
 
@@ -40,11 +47,11 @@ class PayrollItem extends Model
     protected static function booted(): void
     {
         static::creating(function (PayrollItem $item) {
-            $item->net_pay = $item->basic_salary + $item->allowances - $item->deductions;
+            $item->net_pay = $item->basic_salary + $item->allowances - $item->deductions - $item->loss_deductions;
         });
 
         static::updating(function (PayrollItem $item) {
-            $item->net_pay = $item->basic_salary + $item->allowances - $item->deductions;
+            $item->net_pay = $item->basic_salary + $item->allowances - $item->deductions - $item->loss_deductions;
         });
     }
 }

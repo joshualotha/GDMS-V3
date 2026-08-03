@@ -69,6 +69,7 @@ class StockMovementController extends Controller
 
         $validated = $request->validate([
             'outlet_id' => 'required|exists:outlets,id',
+            'movement_date' => 'required|date',
             'notes' => 'nullable|string',
             'items' => 'required|array',
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',
@@ -86,12 +87,12 @@ class StockMovementController extends Controller
 
         try {
             if ($type == 'return') {
-                $this->emptyReturnService->createReturn($validated['outlet_id'], $items, $validated['notes'] ?? null);
+                $this->emptyReturnService->createReturn($validated['outlet_id'], $items, $validated['notes'] ?? null, $validated['movement_date']);
 
                 return redirect()->route('warehouse.movements', ['type' => 'return'])
                     ->with('success', 'Empty return recorded successfully.');
             } else {
-                $this->transferService->createTransfer($validated['outlet_id'], $items, $validated['notes'] ?? null);
+                $this->transferService->createTransfer($validated['outlet_id'], $items, $validated['notes'] ?? null, $validated['movement_date']);
 
                 return redirect()->route('warehouse.movements', ['type' => 'transfer'])
                     ->with('success', 'Transfer completed successfully.');
@@ -106,5 +107,33 @@ class StockMovementController extends Controller
         $stock = StockOutlet::where('outlet_id', $outletId)->get()->keyBy('cylinder_type_id');
 
         return response()->json($stock->toArray());
+    }
+
+    public function cancelTransfer(Request $request, StockTransfer $stockTransfer)
+    {
+        $validated = $request->validate(['reason' => 'required|string']);
+
+        try {
+            $this->transferService->cancelTransfer($stockTransfer, $validated['reason']);
+
+            return redirect()->route('warehouse.movements', ['type' => 'transfer'])
+                ->with('success', 'Transfer cancelled and stock reversed.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function cancelReturn(Request $request, EmptyReturn $emptyReturn)
+    {
+        $validated = $request->validate(['reason' => 'required|string']);
+
+        try {
+            $this->emptyReturnService->cancelReturn($emptyReturn, $validated['reason']);
+
+            return redirect()->route('warehouse.movements', ['type' => 'return'])
+                ->with('success', 'Return cancelled and stock reversed.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

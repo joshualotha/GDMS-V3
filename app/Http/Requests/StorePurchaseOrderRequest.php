@@ -15,6 +15,7 @@ class StorePurchaseOrderRequest extends FormRequest
     {
         return [
             'supplier_id' => 'required|exists:suppliers,id',
+            'order_date' => 'required|date',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',

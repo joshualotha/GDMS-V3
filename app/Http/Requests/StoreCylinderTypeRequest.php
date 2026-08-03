@@ -29,6 +29,7 @@ class StoreCylinderTypeRequest extends FormRequest
             'refill_cost' => 'required|numeric|min:0',
             'refill_price' => 'required|numeric|min:0',
             'is_active' => 'boolean',
+            'price_effective_from' => 'nullable|date',
         ];
     }
 }

@@ -41,7 +41,7 @@
         <tbody>
             @forelse($movements as $movement)
             <tr>
-                <td>{{ $movement->created_at->format('d/m/Y H:i') }}</td>
+                <td>{{ ($movement->movement_date ?? $movement->created_at)->format('d/m/Y') }}</td>
                 <td>{{ ucfirst($movement->transaction_type) }}</td>
                 <td>{{ $movement->cylinderType->name ?? '-' }}</td>
                 <td class="text-right {{ $movement->full_qty_change >= 0 ? 'positive' : 'negative' }}">

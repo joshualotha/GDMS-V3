@@ -46,7 +46,7 @@
                     <td class="px-6 py-4">{{ $asset->asset_number }}</td>
                     <td class="px-6 py-4 font-medium">{{ $asset->name }}</td>
                     <td class="px-6 py-4">{{ $asset->category->name ?? 'N/A' }}</td>
-                    <td class="px-6 py-4">{{ $asset->outlet->name ?? $asset->employee->name ?? 'HQ' }}</td>
+                    <td class="px-6 py-4">{{ $asset->outlet->name ?? $asset->employee->full_name ?? 'HQ' }}</td>
                     <td class="px-6 py-4 text-right">{{ number_format($asset->purchase_cost, 2) }}</td>
                     <td class="px-6 py-4 text-right">{{ number_format($asset->current_book_value, 2) }}</td>
                     <td class="px-6 py-4">
@@ -59,11 +59,18 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <a href="{{ route('assets.show', $asset) }}" class="text-indigo-600 hover:text-indigo-900 text-sm mr-3">View</a>
                         @if($asset->status == 'active')
-                            <a href="{{ route('assets.edit', $asset) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Edit</a>
+                            <a href="{{ route('assets.edit', $asset) }}" class="text-indigo-600 hover:text-indigo-900 text-sm mr-3">Edit</a>
                         @else
-                            <form action="{{ route('assets.reactivate', $asset) }}" method="POST" class="inline" onsubmit="return confirm('Reactivate this asset?')">
+                            <form action="{{ route('assets.reactivate', $asset) }}" method="POST" class="inline mr-3" onsubmit="return confirm('Reactivate this asset?')">
                                 @csrf
                                 <button type="submit" class="text-green-600 hover:text-green-900 text-sm">Reactivate</button>
+                            </form>
+                        @endif
+                        @if($asset->status != 'disposed')
+                            <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline" onsubmit="return confirm('Delete this asset permanently? This cannot be undone.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-900 text-sm">Delete</button>
                             </form>
                         @endif
                     </td>

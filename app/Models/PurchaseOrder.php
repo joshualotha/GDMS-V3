@@ -13,6 +13,7 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'po_number',
         'supplier_id',
+        'order_date',
         'status',
         'total_cost',
         'notes',
@@ -20,6 +21,7 @@ class PurchaseOrder extends Model
 
     protected $casts = [
         'total_cost' => 'decimal:2',
+        'order_date' => 'date',
     ];
 
     public function supplier(): BelongsTo

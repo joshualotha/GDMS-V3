@@ -37,9 +37,19 @@
 
     <table class="w-full">
         <tr class="border-b">
-            <td class="py-2 text-gray-500">Basic Salary</td>
+            <td class="py-2 text-gray-500">{{ $item->cylinders_sold !== null ? 'Commission Pay' : 'Basic Salary' }}</td>
             <td class="py-2 text-right">{{ number_format($item->basic_salary, 2) }}</td>
         </tr>
+        @if($item->cylinders_sold !== null)
+        <tr>
+            <td class="py-1 text-xs text-gray-500 pl-4" colspan="2">
+                {{ $item->cylinders_sold }} of {{ $item->commission_target }} cylinders sold @ {{ number_format($item->commission_rate, 2) }} each
+                @if($item->cylinders_sold < $item->commission_target)
+                    (below target — rate scaled down)
+                @endif
+            </td>
+        </tr>
+        @endif
         <tr class="border-b">
             <td class="py-2 text-gray-500">Allowances</td>
             <td class="py-2 text-right">{{ number_format($item->allowances, 2) }}</td>
@@ -56,6 +66,15 @@
         @if($item->deduction_note)
         <tr>
             <td class="py-1 text-xs text-gray-500 pl-4">{{ $item->deduction_note }}</td>
+        </tr>
+        @endif
+        @if($item->loss_deductions > 0)
+        <tr class="border-b">
+            <td class="py-2 text-gray-500">Cylinder Loss Deduction</td>
+            <td class="py-2 text-right">-{{ number_format($item->loss_deductions, 2) }}</td>
+        </tr>
+        <tr>
+            <td class="py-1 text-xs text-gray-500 pl-4" colspan="2">{{ $item->loss_deduction_note }}</td>
         </tr>
         @endif
         <tr class="border-b font-bold text-lg">

@@ -44,12 +44,6 @@ class AssetCategoryController extends Controller
         return redirect()->back()->with('success', 'Asset category updated.');
     }
 
-    public function destroy(AssetCategory $assetCategory)
-    {
-        $assetCategory->delete();
-        return redirect()->back()->with('success', 'Asset category deleted.');
-    }
-
     public function toggle(AssetCategory $assetCategory)
     {
         $assetCategory->update(['is_active' => ! $assetCategory->is_active]);

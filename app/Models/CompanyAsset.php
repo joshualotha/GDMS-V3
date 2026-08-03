@@ -50,7 +50,7 @@ class CompanyAsset extends Model
 
     public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_to_employee');
+        return $this->belongsTo(Employee::class, 'assigned_to_employee');
     }
 
     public function depreciationLogs(): HasMany

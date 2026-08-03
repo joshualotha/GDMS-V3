@@ -20,6 +20,12 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{ session('error') }}
+    </div>
+@endif
+
 <form method="GET" class="bg-white p-4 rounded-lg shadow mb-4 flex flex-wrap gap-4 items-end">
     <div>
         <label class="block text-xs text-gray-500">Category</label>
@@ -62,6 +68,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"></th>
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -80,10 +87,22 @@
                     </td>
                     <td class="px-6 py-4 text-right">{{ number_format($expense->amount, 2) }}</td>
                     <td class="px-6 py-4 text-sm text-gray-500">{{ $expense->reference ?? '-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @if($expense->fuel_purchase_id)
+                            <span class="text-xs text-gray-400" title="Auto-generated from a fuel purchase">Fuel purchase</span>
+                        @else
+                            <a href="{{ route('expenses.edit', $expense) }}" class="text-indigo-600 hover:underline text-sm mr-3">Edit</a>
+                            <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="inline" onsubmit="return confirm('Delete this expense?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
+                            </form>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No expenses found.</td>
+                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">No expenses found.</td>
                 </tr>
             @endforelse
         </tbody>
@@ -92,6 +111,7 @@
             <tr>
                 <td colspan="5" class="px-6 py-3 text-right">Total</td>
                 <td class="px-6 py-3 text-right">{{ number_format($expenses->sum('amount'), 2) }}</td>
+                <td></td>
                 <td></td>
             </tr>
         </tfoot>

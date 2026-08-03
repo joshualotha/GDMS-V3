@@ -6,6 +6,7 @@ use App\Helpers\ReferenceGenerator;
 use App\Http\Controllers\Controller;
 use App\Models\AssetCategory;
 use App\Models\CompanyAsset;
+use App\Models\Employee;
 use App\Models\Outlet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +29,9 @@ class OutletController extends Controller
             ->orderBy('name')
             ->get();
         $depreciableCategories = AssetCategory::where('is_depreciable', true)->where('is_active', true)->orderBy('name')->get();
+        $availableEmployees = Employee::where('status', 'active')->whereNull('outlet_id')->orderBy('first_name')->get();
 
-        return view('settings.outlets.create', compact('availableAssets', 'depreciableCategories'));
+        return view('settings.outlets.create', compact('availableAssets', 'depreciableCategories', 'availableEmployees'));
     }
 
     public function store(Request $request)
@@ -40,26 +42,36 @@ class OutletController extends Controller
             'location' => 'nullable|string|max:255',
             'plate_number' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'opened_date' => 'required|date',
             'asset_id' => 'nullable|exists:assets,id',
             'asset_category_id' => 'required_if:type,car|nullable|exists:asset_categories,id',
             'purchase_cost' => 'nullable|numeric|min:0',
+            'employee_id' => 'required|exists:employees,id',
         ]);
 
-        $validated['is_active'] = $validated['is_active'] ?? true;
+        $validated['is_active'] = $request->boolean('is_active');
         $validated['location'] = $validated['location'] ?? '';
 
-        return DB::transaction(function () use ($validated) {
+        $employee = Employee::findOrFail($validated['employee_id']);
+        if ($employee->outlet_id !== null) {
+            return back()->withInput()->with('error', "{$employee->full_name} is already assigned to another outlet.");
+        }
+
+        return DB::transaction(function () use ($validated, $employee) {
             $outlet = Outlet::create([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
                 'location' => $validated['location'],
                 'plate_number' => $validated['plate_number'] ?? null,
                 'is_active' => $validated['is_active'],
+                'opened_date' => $validated['opened_date'],
             ]);
 
             if ($validated['type'] === 'car') {
                 $outlet->update(['asset_id' => $this->resolveCarAsset($outlet, $validated)->id]);
             }
+
+            $employee->update(['outlet_id' => $outlet->id]);
 
             return redirect()->route('outlets.index')
                 ->with('success', 'Outlet created successfully.');
@@ -68,12 +80,16 @@ class OutletController extends Controller
 
     /**
      * Either link the car-outlet to an existing depreciable asset, or create a new one for it.
+     * The outlet's assigned employee doubles as the vehicle's driver.
      */
     protected function resolveCarAsset(Outlet $outlet, array $data): CompanyAsset
     {
         if (! empty($data['asset_id'])) {
             $asset = CompanyAsset::findOrFail($data['asset_id']);
-            $asset->update(['assigned_to_outlet' => $outlet->id]);
+            $asset->update([
+                'assigned_to_outlet' => $outlet->id,
+                'assigned_to_employee' => $data['employee_id'],
+            ]);
 
             return $asset;
         }
@@ -93,12 +109,21 @@ class OutletController extends Controller
             'depreciation_rate' => $category->default_depreciation_rate,
             'status' => 'active',
             'assigned_to_outlet' => $outlet->id,
+            'assigned_to_employee' => $data['employee_id'],
         ]);
     }
 
     public function edit(Outlet $outlet)
     {
-        return view('settings.outlets.edit', compact('outlet'));
+        $outlet->load('employee');
+        $availableEmployees = Employee::where('status', 'active')
+            ->where(function ($q) use ($outlet) {
+                $q->whereNull('outlet_id')->orWhere('outlet_id', $outlet->id);
+            })
+            ->orderBy('first_name')
+            ->get();
+
+        return view('settings.outlets.edit', compact('outlet', 'availableEmployees'));
     }
 
     public function update(Request $request, Outlet $outlet)
@@ -109,15 +134,33 @@ class OutletController extends Controller
             'location' => 'nullable|string|max:255',
             'plate_number' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'opened_date' => 'required|date',
+            'employee_id' => 'required|exists:employees,id',
         ]);
 
-        $validated['is_active'] = $validated['is_active'] ?? true;
+        $validated['is_active'] = $request->boolean('is_active');
         $validated['location'] = $validated['location'] ?? '';
 
-        $outlet->update($validated);
+        $employee = Employee::findOrFail($validated['employee_id']);
+        if ($employee->outlet_id !== null && $employee->outlet_id !== $outlet->id) {
+            return back()->withInput()->with('error', "{$employee->full_name} is already assigned to another outlet.");
+        }
 
-        return redirect()->route('outlets.index')
-            ->with('success', 'Outlet updated successfully.');
+        return DB::transaction(function () use ($validated, $outlet, $employee) {
+            $outlet->update(collect($validated)->except('employee_id')->toArray());
+
+            // Unassign whoever else was on this outlet, then assign the chosen employee.
+            Employee::where('outlet_id', $outlet->id)->where('id', '!=', $employee->id)->update(['outlet_id' => null]);
+            $employee->update(['outlet_id' => $outlet->id]);
+
+            // Keep a car outlet's vehicle "driver" in sync with its assigned employee.
+            if ($outlet->type === 'car' && $outlet->asset) {
+                $outlet->asset->update(['assigned_to_employee' => $employee->id]);
+            }
+
+            return redirect()->route('outlets.index')
+                ->with('success', 'Outlet updated successfully.');
+        });
     }
 
     public function toggle(Outlet $outlet)

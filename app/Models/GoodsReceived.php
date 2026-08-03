@@ -14,6 +14,7 @@ class GoodsReceived extends Model
         'grn_number',
         'supplier_id',
         'purchase_order_id',
+        'received_date',
         'status',
         'total_cost',
         'notes',
@@ -21,6 +22,7 @@ class GoodsReceived extends Model
 
     protected $casts = [
         'total_cost' => 'decimal:2',
+        'received_date' => 'date',
     ];
 
     public function supplier(): BelongsTo

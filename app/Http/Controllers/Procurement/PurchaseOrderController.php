@@ -39,6 +39,7 @@ class PurchaseOrderController extends Controller
             $po = PurchaseOrder::create([
                 'po_number' => ReferenceGenerator::generatePoNumber(),
                 'supplier_id' => $validated['supplier_id'],
+                'order_date' => $validated['order_date'],
                 'notes' => $validated['notes'] ?? null,
             ]);
 

@@ -26,6 +26,20 @@
             </select>
         </div>
 
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Assigned Employee *</label>
+            <select name="employee_id" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                <option value="">Select employee</option>
+                @foreach($availableEmployees as $emp)
+                <option value="{{ $emp->id }}" {{ old('employee_id') == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }} ({{ $emp->employee_number }})</option>
+                @endforeach
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Every outlet needs exactly one employee. For a car outlet, this person is also the vehicle's driver.</p>
+            @if($availableEmployees->isEmpty())
+                <p class="text-xs text-red-600 mt-1">No unassigned active employees available. <a href="{{ route('employees.create') }}" class="underline">Add one first</a>.</p>
+            @endif
+        </div>
+
         <div id="car-fields" class="{{ old('type') != 'car' ? 'hidden' : '' }}">
             <div class="bg-blue-50 rounded-lg p-4 mb-6">
                 <h4 class="font-medium text-blue-900 mb-3">Vehicle Details</h4>
@@ -84,8 +98,14 @@
         </div>
 
         <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date Opened *</label>
+            <input type="date" name="opened_date" value="{{ old('opened_date', date('Y-m-d')) }}" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div class="mb-6">
             <label class="inline-flex items-center">
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }} 
+                <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}
                     class="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                 <span class="ml-2 text-sm text-gray-700">Active</span>
             </label>

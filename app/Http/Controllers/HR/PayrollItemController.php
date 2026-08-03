@@ -34,4 +34,16 @@ class PayrollItemController extends Controller
                 ->with('error', $e->getMessage());
         }
     }
+
+    public function destroy(PayrollItem $item)
+    {
+        try {
+            $this->payrollService->removeEmployeeFromPeriod($item->period, $item);
+            return redirect()->back()
+                ->with('success', 'Employee removed from payroll period.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
 }

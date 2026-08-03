@@ -48,9 +48,19 @@
 
     <table>
         <tr>
-            <td>Basic Salary</td>
+            <td>{{ $item->cylinders_sold !== null ? 'Commission Pay' : 'Basic Salary' }}</td>
             <td>{{ number_format($item->basic_salary, 2) }}</td>
         </tr>
+        @if($item->cylinders_sold !== null)
+        <tr>
+            <td style="font-size: 11px; padding-left: 20px;" colspan="2">
+                {{ $item->cylinders_sold }} of {{ $item->commission_target }} cylinders sold @ {{ number_format($item->commission_rate, 2) }} each
+                @if($item->cylinders_sold < $item->commission_target)
+                    (below target — rate scaled down)
+                @endif
+            </td>
+        </tr>
+        @endif
         <tr>
             <td>Allowances</td>
             <td>{{ number_format($item->allowances, 2) }}</td>
@@ -67,6 +77,15 @@
         @if($item->deduction_note)
         <tr>
             <td style="font-size: 11px; padding-left: 20px;">{{ $item->deduction_note }}</td>
+        </tr>
+        @endif
+        @if($item->loss_deductions > 0)
+        <tr>
+            <td>Cylinder Loss Deduction</td>
+            <td>-{{ number_format($item->loss_deductions, 2) }}</td>
+        </tr>
+        <tr>
+            <td style="font-size: 11px; padding-left: 20px;" colspan="2">{{ $item->loss_deduction_note }}</td>
         </tr>
         @endif
         <tr class="total-row">

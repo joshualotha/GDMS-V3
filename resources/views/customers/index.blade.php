@@ -56,8 +56,14 @@
                             {{ $customer->is_active ? 'Active' : 'Inactive' }}
                         </span>
                     </td>
-                    <td class="px-6 py-4">
-                        <a href="{{ route('customers.edit', $customer) }}" class="text-indigo-600 hover:underline">Edit</a>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{{ route('customers.edit', $customer) }}" class="text-indigo-600 hover:underline mr-3">Edit</a>
+                        <form action="{{ route('customers.toggle', $customer) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-gray-600 hover:underline" onclick="return confirm('{{ $customer->is_active ? 'Deactivate' : 'Activate' }} this customer?')">
+                                {{ $customer->is_active ? 'Deactivate' : 'Activate' }}
+                            </button>
+                        </form>
                     </td>
                 </tr>
             @empty

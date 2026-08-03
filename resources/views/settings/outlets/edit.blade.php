@@ -49,6 +49,28 @@
     </div>
 
     <div>
+        <label for="employee_id" class="block text-sm font-medium text-gray-700">Assigned Employee</label>
+        <select name="employee_id" id="employee_id" required class="mt-1 form-select">
+            <option value="">Select employee</option>
+            @foreach($availableEmployees as $emp)
+            <option value="{{ $emp->id }}" {{ old('employee_id', $outlet->employee?->id) == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }} ({{ $emp->employee_number }})</option>
+            @endforeach
+        </select>
+        @error('employee_id')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div>
+        <label for="opened_date" class="block text-sm font-medium text-gray-700">Date Opened</label>
+        <input type="date" name="opened_date" id="opened_date" value="{{ old('opened_date', $outlet->opened_date?->format('Y-m-d')) }}" required
+            class="mt-1 form-input">
+        @error('opened_date')
+            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div>
         <label for="is_active" class="inline-flex items-center">
             <input type="checkbox" name="is_active" id="is_active" value="1" {{ $outlet->is_active ? 'checked' : '' }}
                 class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">

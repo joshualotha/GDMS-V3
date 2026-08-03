@@ -28,6 +28,10 @@
                     <input type="text" class="form-input" value="GRN-{{ date('Ymd') }}-0001" readonly>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Received Date <span class="form-label-required">*</span></label>
+                    <input type="date" name="received_date" value="{{ date('Y-m-d') }}" required class="form-input">
+                </div>
+                <div class="form-group">
                     <label class="form-label">Notes</label>
                     <input type="text" name="notes" class="form-input" placeholder="Optional notes">
                 </div>

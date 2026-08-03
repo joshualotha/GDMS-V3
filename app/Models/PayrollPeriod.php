@@ -17,6 +17,7 @@ class PayrollPeriod extends Model
         'status',
         'approved_by',
         'approved_at',
+        'paid_at',
     ];
 
     protected $casts = [
@@ -24,6 +25,7 @@ class PayrollPeriod extends Model
         'total_deductions' => 'decimal:2',
         'total_net' => 'decimal:2',
         'approved_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function items(): HasMany

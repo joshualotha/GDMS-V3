@@ -51,4 +51,12 @@ class FuelIssueController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
+
+    public function destroy(FuelIssue $fuelIssue)
+    {
+        $this->fuelService->deleteIssue($fuelIssue);
+
+        return redirect()->route('fuel.issues.index')
+            ->with('success', 'Fuel issue deleted and stock restored.');
+    }
 }

@@ -12,6 +12,7 @@ class StockMainLedger extends Model
     protected $fillable = [
         'cylinder_type_id',
         'outlet_id',
+        'movement_date',
         'full_qty_change',
         'empty_qty_change',
         'full_qty_after',
@@ -20,6 +21,10 @@ class StockMainLedger extends Model
         'reference_type',
         'reference_id',
         'note',
+    ];
+
+    protected $casts = [
+        'movement_date' => 'date',
     ];
 
     public function cylinderType(): BelongsTo

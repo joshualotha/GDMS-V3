@@ -31,6 +31,15 @@
             </div>
         </div>
 
+        <div class="mb-4">
+            <label for="order_date" class="block text-sm font-medium text-gray-700">Order Date</label>
+            <input type="date" name="order_date" id="order_date" value="{{ old('order_date', date('Y-m-d')) }}" required
+                class="mt-1 form-input">
+            @error('order_date')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
         <div>
             <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
             <textarea name="notes" id="notes" rows="2"

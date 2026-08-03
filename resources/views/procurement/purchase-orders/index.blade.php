@@ -44,7 +44,7 @@
                             <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-800">Cancelled</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ $po->created_at->format('d/m/Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ ($po->order_date ?? $po->created_at)->format('d/m/Y') }}</td>
                     <td class="px-6 py-4 text-center">
                         <a href="{{ route('purchase-orders.show', $po) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                     </td>

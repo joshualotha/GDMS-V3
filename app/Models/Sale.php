@@ -60,4 +60,9 @@ class Sale extends Model
     {
         return $this->hasMany(SaleItem::class);
     }
+
+    public function accessoryItems(): HasMany
+    {
+        return $this->hasMany(SaleAccessoryItem::class);
+    }
 }

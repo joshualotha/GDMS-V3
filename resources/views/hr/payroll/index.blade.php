@@ -57,10 +57,16 @@
                             @csrf
                             <button type="submit" class="text-blue-600 hover:underline" onclick="return confirm('Approve this payroll period?')">Approve</button>
                         </form>
+                        <form action="{{ route('payroll.destroy', $period) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline" onclick="return confirm('Delete this draft payroll period? This cannot be undone.')">Delete</button>
+                        </form>
                         @elseif($period->status == 'approved')
                         <form action="{{ route('payroll.markPaid', $period) }}" method="POST" class="inline">
                             @csrf
-                            <button type="submit" class="text-green-600 hover:underline" onclick="return confirm('Mark this payroll as paid?')">Mark Paid</button>
+                            <input type="hidden" name="paid_at" value="{{ date('Y-m-d') }}">
+                            <button type="submit" class="text-green-600 hover:underline" onclick="return confirm('Mark this payroll as paid today?')">Mark Paid</button>
                         </form>
                         <form action="{{ route('payroll.unapprove', $period) }}" method="POST" class="inline">
                             @csrf

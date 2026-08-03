@@ -22,6 +22,12 @@
     </div>
 
     <div>
+        <label for="adjustment_date" class="block text-sm font-medium text-gray-700">Date</label>
+        <input type="date" name="adjustment_date" id="adjustment_date" value="{{ date('Y-m-d') }}" required
+            class="mt-1 form-input">
+    </div>
+
+    <div>
         <label for="cylinder_type_id" class="block text-sm font-medium text-gray-700">Cylinder Type</label>
         <select name="cylinder_type_id" id="cylinder_type_id" required
             class="mt-1 form-select bg-gray-50">

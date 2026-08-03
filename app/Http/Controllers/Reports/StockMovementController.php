@@ -16,7 +16,7 @@ class StockMovementController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : Carbon::now()->endOfDay();
 
-        $query = StockMainLedger::whereNull('outlet_id')->whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = StockMainLedger::whereNull('outlet_id')->whereBetween('movement_date', [$dateFrom, $dateTo]);
 
         if ($request->transaction_type) {
             $query->where('transaction_type', $request->transaction_type);
@@ -26,7 +26,7 @@ class StockMovementController extends Controller
             $query->where('cylinder_type_id', $request->cylinder_type_id);
         }
 
-        $movements = $query->orderBy('created_at', 'desc')->get();
+        $movements = $query->orderBy('movement_date', 'desc')->get();
         $cylinderTypes = CylinderType::where('is_active', true)->orderBy('size_kg')->get();
 
         $totals = [
@@ -44,7 +44,7 @@ class StockMovementController extends Controller
         $dateFrom = $request->date_from ? Carbon::parse($request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
         $dateTo = $request->date_to ? Carbon::parse($request->date_to)->endOfDay() : Carbon::now()->endOfDay();
 
-        $query = StockMainLedger::whereNull('outlet_id')->whereBetween('created_at', [$dateFrom, $dateTo]);
+        $query = StockMainLedger::whereNull('outlet_id')->whereBetween('movement_date', [$dateFrom, $dateTo]);
 
         if ($request->transaction_type) {
             $query->where('transaction_type', $request->transaction_type);
@@ -54,7 +54,7 @@ class StockMovementController extends Controller
             $query->where('cylinder_type_id', $request->cylinder_type_id);
         }
 
-        $movements = $query->orderBy('created_at', 'desc')->get();
+        $movements = $query->orderBy('movement_date', 'desc')->get();
         $cylinderTypes = CylinderType::where('is_active', true)->orderBy('size_kg')->get();
 
         $totals = [

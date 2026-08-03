@@ -49,7 +49,7 @@
                             <span class="badge badge-success">Main Store</span>
                         @endif
                     </td>
-                    <td>{{ $os->created_at->format('d/m/Y') }}</td>
+                    <td>{{ $os->stock_date?->format('d/m/Y') ?? $os->created_at->format('d/m/Y') }}</td>
                     <td>{{ $os->items->sum('full_qty') }} full, {{ $os->items->sum('empty_qty') }} empty</td>
                     <td>{{ $os->notes ?? '-' }}</td>
                 </tr>

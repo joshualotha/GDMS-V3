@@ -37,7 +37,13 @@
                     <td class="px-6 py-4">{{ $emp->full_name }}</td>
                     <td class="px-6 py-4">{{ $emp->role_title ?? '-' }}</td>
                     <td class="px-6 py-4">{{ $emp->outlet->name ?? 'HQ' }}</td>
-                    <td class="px-6 py-4 text-right">{{ number_format($emp->basic_salary, 2) }}</td>
+                    <td class="px-6 py-4 text-right">
+                        @if($emp->pay_type == 'commission')
+                            {{ number_format($emp->commission_rate, 2) }} / cyl
+                        @else
+                            {{ number_format($emp->basic_salary, 2) }}
+                        @endif
+                    </td>
                     <td class="px-6 py-4">
                         <span class="px-2 py-1 text-xs rounded 
                             {{ $emp->status == 'active' ? 'bg-green-100 text-green-800' : '' }}
@@ -49,6 +55,11 @@
                     <td class="px-6 py-4">
                         <a href="{{ route('employees.show', $emp) }}" class="text-indigo-600 hover:underline mr-3">View</a>
                         <a href="{{ route('employees.edit', $emp) }}" class="text-indigo-600 hover:underline mr-3">Edit</a>
+                        <form action="{{ route('employees.destroy', $emp) }}" method="POST" class="inline" onsubmit="return confirm('Delete this employee permanently? This cannot be undone.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline">Delete</button>
+                        </form>
                     </td>
                 </tr>
             @empty

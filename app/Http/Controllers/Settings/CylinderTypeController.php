@@ -56,7 +56,7 @@ class CylinderTypeController extends Controller
                 'full_sale_price' => $cylinderType->full_sale_price,
                 'refill_cost' => $cylinderType->refill_cost,
                 'refill_price' => $cylinderType->refill_price,
-                'effective_from' => now(),
+                'effective_from' => $validated['price_effective_from'] ?? now(),
             ]);
         }
 

@@ -18,6 +18,7 @@
             <option value="pending" {{ request()->status == 'pending' ? 'selected' : '' }}>Pending</option>
             <option value="approved" {{ request()->status == 'approved' ? 'selected' : '' }}>Approved</option>
             <option value="queried" {{ request()->status == 'queried' ? 'selected' : '' }}>Queried</option>
+            <option value="cancelled" {{ request()->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
         </select>
         <input type="date" name="date_from" value="{{ request()->date_from }}" class="form-input-sm">
         <input type="date" name="date_to" value="{{ request()->date_to }}" class="form-input-sm">
@@ -60,8 +61,10 @@
                             <span class="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">Pending</span>
                         @elseif($sale->status == 'approved')
                             <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-800">Approved</span>
-                        @else
+                        @elseif($sale->status == 'queried')
                             <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-800">Queried</span>
+                        @else
+                            <span class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700">Cancelled</span>
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">

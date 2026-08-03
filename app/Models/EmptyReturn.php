@@ -13,8 +13,13 @@ class EmptyReturn extends Model
     protected $fillable = [
         'return_number',
         'outlet_id',
+        'return_date',
         'status',
         'notes',
+    ];
+
+    protected $casts = [
+        'return_date' => 'date',
     ];
 
     public function outlet(): BelongsTo

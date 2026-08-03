@@ -11,6 +11,8 @@ use App\Models\Expense;
 use App\Models\CompanyAsset;
 use App\Models\Employee;
 use App\Models\StockAdjustment;
+use App\Models\AccessoryPurchase;
+use App\Models\AccessoryTransfer;
 
 class ReferenceGenerator
 {
@@ -77,5 +79,15 @@ class ReferenceGenerator
     public static function generateAdjustmentNumber(): string
     {
         return self::nextNumber(StockAdjustment::class, 'adjustment_number', 'ADJ-' . now()->format('Y'), 4);
+    }
+
+    public static function generateAccessoryPurchaseNumber(): string
+    {
+        return self::nextNumber(AccessoryPurchase::class, 'purchase_number', 'ACP-' . now()->format('Y'), 4);
+    }
+
+    public static function generateAccessoryTransferNumber(): string
+    {
+        return self::nextNumber(AccessoryTransfer::class, 'transfer_number', 'ATR-' . now()->format('Y'), 4);
     }
 }

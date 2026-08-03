@@ -16,6 +16,7 @@ class StoreGoodsReceivedRequest extends FormRequest
         return [
             'supplier_id' => 'required|exists:suppliers,id',
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
+            'received_date' => 'required|date',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.cylinder_type_id' => 'required|exists:cylinder_types,id',

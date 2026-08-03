@@ -55,4 +55,12 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')
             ->with('success', 'Customer updated successfully.');
     }
+
+    public function toggle(Customer $customer)
+    {
+        $customer->update(['is_active' => ! $customer->is_active]);
+
+        return redirect()->route('customers.index')
+            ->with('success', 'Customer status updated.');
+    }
 }
