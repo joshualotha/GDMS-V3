@@ -71,6 +71,7 @@ class OutletController extends Controller
             $employee = $validated['employee_id'] === '__new__'
                 ? $this->createInlineEmployee($validated)
                 : Employee::findOrFail($validated['employee_id']);
+            $validated['employee_id'] = $employee->id;
 
             $outlet = Outlet::create([
                 'name' => $validated['name'],
