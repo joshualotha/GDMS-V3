@@ -157,9 +157,8 @@ Route::middleware('auth')->group(function () {
 
     // NOTE: fuel is now bought at the pump for one specific vehicle at a time (cash, litres +
     // odometer recorded on the spot) — see fuel/purchases. The old bulk warehouse-pool workflow
-    // (buy into FuelStock, then separately "issue" litres to a vehicle) is retired going forward;
-    // FuelIssueController/its create+store routes are left unrouted, existing records stay as history.
-    Route::get('/fuel/stock', [FuelPurchaseController::class, 'stock'])->name('fuel.stock');
+    // (buy into a shared fuel stock pool, then separately "issue" litres to a vehicle) is retired;
+    // FuelIssueController's create+store routes are left unrouted, existing records stay as history.
     Route::get('/fuel/purchases', [FuelPurchaseController::class, 'index'])->name('fuel.purchases.index');
     Route::get('/fuel/purchases/create', [FuelPurchaseController::class, 'create'])->name('fuel.purchases.create');
     Route::post('/fuel/purchases', [FuelPurchaseController::class, 'store'])->name('fuel.purchases.store');

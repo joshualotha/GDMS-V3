@@ -420,7 +420,6 @@
                             'items' => [
                                 ['fuel/purchases', 'Purchases', 'fuel/purchases*'],
                                 ['fuel/issues', 'Issues (History)', 'fuel/issues*'],
-                                ['fuel/stock', 'Fuel Stock', 'fuel/stock*'],
                             ],
                         ],
                         'assets' => [

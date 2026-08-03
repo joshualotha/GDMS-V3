@@ -83,20 +83,4 @@
         </tbody>
     </table>
 </div>
-
-<div class="bg-white rounded-lg shadow overflow-hidden">
-    <div class="bg-gray-50 px-6 py-3 font-semibold">Section 3: Balance Summary</div>
-    <table class="min-w-full">
-        <tbody>
-            <tr class="border-b">
-                <td class="px-4 py-2">Diesel Balance</td>
-                <td class="px-4 py-2 text-right font-semibold">{{ number_format($balance['diesel'], 2) }} L</td>
-            </tr>
-            <tr>
-                <td class="px-4 py-2">Petrol Balance</td>
-                <td class="px-4 py-2 text-right font-semibold">{{ number_format($balance['petrol'], 2) }} L</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 @endsection

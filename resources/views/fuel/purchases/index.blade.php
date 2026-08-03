@@ -6,7 +6,6 @@
 
 @section('content')
 <div class="mb-4 flex justify-end gap-4">
-    <a href="{{ url('fuel/stock') }}" class="bg-gray-600 text-white px-4 py-2 rounded">Stock</a>
     <a href="{{ url('fuel/purchases/create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded">New Purchase</a>
 </div>
 

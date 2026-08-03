@@ -5,9 +5,8 @@
 @section('header', 'Fuel Issues')
 
 @section('content')
-<div class="mb-4 flex justify-between items-center gap-4">
+<div class="mb-4">
     <p class="text-sm text-gray-500">Historical only — fuel is now bought directly per vehicle at the pump. See <a href="{{ route('fuel.purchases.index') }}" class="text-indigo-600 hover:underline">Fuel Purchases</a>.</p>
-    <a href="{{ url('fuel/stock') }}" class="bg-gray-600 text-white px-4 py-2 rounded shrink-0">Stock</a>
 </div>
 
 @if(session('error'))

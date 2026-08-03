@@ -188,23 +188,6 @@
     </div>
 </div>
 
-{{-- Fuel Stock --}}
-<div class="mb-6">
-    <h2 class="mb-4">Fuel Stock</h2>
-    <div class="grid-2">
-        <div class="stat-card">
-            <div class="stat-label">Diesel Stock</div>
-            <div class="stat-value" style="color: var(--info);">{{ number_format($fuelStocks['Diesel'] ?? 0) }}</div>
-            <div class="stat-sublabel">Litres</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Petrol Stock</div>
-            <div class="stat-value" style="color: var(--info);">{{ number_format($fuelStocks['Petrol'] ?? 0) }}</div>
-            <div class="stat-sublabel">Litres</div>
-        </div>
-    </div>
-</div>
-
 {{-- Charts Row --}}
 <div class="grid-2 mb-6">
     <div class="card">

@@ -12,7 +12,6 @@ use App\Models\SaleItem;
 use App\Models\CompanyAsset;
 use App\Models\StockTransfer;
 use App\Models\GoodsReceived;
-use App\Models\FuelStock;
 use App\Models\Expense;
 use App\Models\PayrollPeriod;
 use App\Models\Supplier;
@@ -185,11 +184,6 @@ class DashboardController extends Controller
         // Period-based expenses
         $periodExpenses = Expense::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
 
-        // NEW: Fuel Stock
-        $fuelStocks = FuelStock::all()->mapWithKeys(function($stock) {
-            return [ucfirst($stock->fuel_type) => $stock->litres];
-        });
-
         // Profit calculation
         $periodProfit = $periodSalesAmount - $periodExpenses;
         $profitMargin = $periodSalesAmount > 0 ? round(($periodProfit / $periodSalesAmount) * 100, 1) : 0;
@@ -239,7 +233,6 @@ class DashboardController extends Controller
             'outletStockSummary',
             'alerts',
             'recentActivity',
-            'fuelStocks',
             'setupChecklist',
             'periodExpenses',
             'periodSalesCount',
@@ -276,7 +269,6 @@ class DashboardController extends Controller
             ['label' => 'Expense Categories', 'desc' => 'Only needed if you record expenses', 'done' => ExpenseCategory::count() > 0, 'url' => url('settings/expense-categories'), 'required' => false],
             ['label' => 'Employees', 'desc' => 'Only needed if you run payroll', 'done' => Employee::count() > 0, 'url' => url('hr/employees'), 'required' => false],
             ['label' => 'Company Assets', 'desc' => 'Vehicles/equipment you already own', 'done' => CompanyAsset::count() > 0, 'url' => url('assets'), 'required' => false],
-            ['label' => 'Fuel Stock', 'desc' => 'Only needed if you track vehicle fuel', 'done' => FuelStock::sum('litres') > 0, 'url' => url('fuel/purchases'), 'required' => false],
         ];
 
         $requiredIncomplete = collect($items)->where('required', true)->where('done', false)->count();

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Reports;
 use App\Http\Controllers\Controller;
 use App\Models\FuelIssue;
 use App\Models\FuelPurchase;
-use App\Models\FuelStock;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -14,19 +13,19 @@ class FuelReportController extends Controller
 {
     public function index(Request $request)
     {
-        [$purchases, $issues, $totals, $balance, $dateFrom, $dateTo] = $this->buildReportData($request);
+        [$purchases, $issues, $totals, $dateFrom, $dateTo] = $this->buildReportData($request);
 
         return view('reports.fuel.index', compact(
-            'purchases', 'issues', 'totals', 'balance', 'dateFrom', 'dateTo'
+            'purchases', 'issues', 'totals', 'dateFrom', 'dateTo'
         ));
     }
 
     public function export(Request $request)
     {
-        [$purchases, $issues, $totals, $balance, $dateFrom, $dateTo] = $this->buildReportData($request);
+        [$purchases, $issues, $totals, $dateFrom, $dateTo] = $this->buildReportData($request);
 
         $pdf = Pdf::loadView('reports.fuel.pdf', compact(
-            'purchases', 'issues', 'totals', 'balance', 'dateFrom', 'dateTo'
+            'purchases', 'issues', 'totals', 'dateFrom', 'dateTo'
         ));
 
         return $pdf->download('fuel-report-'.$dateFrom->format('Y-m-d').'-to-'.$dateTo->format('Y-m-d').'.pdf');
@@ -56,8 +55,6 @@ class FuelReportController extends Controller
         $purchases = $purchasesQuery->orderBy('date', 'desc')->get();
         $issues = $issuesQuery->with('outlet')->orderBy('created_at', 'desc')->get();
 
-        $fuelStock = FuelStock::all()->keyBy('fuel_type');
-
         $totals = [
             'diesel_purchased' => $purchases->where('fuel_type', 'diesel')->sum('litres'),
             'petrol_purchased' => $purchases->where('fuel_type', 'petrol')->sum('litres'),
@@ -65,11 +62,6 @@ class FuelReportController extends Controller
             'petrol_issued' => $issues->where('fuel_type', 'petrol')->sum('litres'),
         ];
 
-        $balance = [
-            'diesel' => ($fuelStock['diesel']->litres ?? 0),
-            'petrol' => ($fuelStock['petrol']->litres ?? 0),
-        ];
-
-        return [$purchases, $issues, $totals, $balance, $dateFrom, $dateTo];
+        return [$purchases, $issues, $totals, $dateFrom, $dateTo];
     }
 }

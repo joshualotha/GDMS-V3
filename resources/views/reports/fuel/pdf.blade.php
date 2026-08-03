@@ -79,14 +79,6 @@
         </table>
     </div>
 
-    <div class="section">
-        <div class="section-title">Section 3: Balance Summary</div>
-        <table>
-            <tr><td>Diesel Balance</td><td class="text-right font-bold">{{ number_format($balance['diesel'], 2) }} L</td></tr>
-            <tr><td>Petrol Balance</td><td class="text-right font-bold">{{ number_format($balance['petrol'], 2) }} L</td></tr>
-        </table>
-    </div>
-
     <div class="footer">
         <p>Generated on {{ now()->format('d/m/Y H:i') }}</p>
     </div>

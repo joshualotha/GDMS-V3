@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Fuel;
 
 use App\Http\Controllers\Controller;
 use App\Models\FuelPurchase;
-use App\Models\FuelStock;
 use App\Models\Outlet;
 use App\Models\Supplier;
 use App\Services\FuelService;
@@ -23,12 +22,6 @@ class FuelPurchaseController extends Controller
     {
         $purchases = FuelPurchase::with('supplierAccount', 'outlet')->orderBy('date', 'desc')->get();
         return view('fuel.purchases.index', compact('purchases'));
-    }
-
-    public function stock()
-    {
-        $fuelStock = FuelStock::all()->keyBy('fuel_type');
-        return view('fuel.purchases.stock', compact('fuelStock'));
     }
 
     public function create()
