@@ -45,18 +45,33 @@ class OutletController extends Controller
             'asset_id' => 'nullable|exists:assets,id',
             'depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'purchase_cost' => 'nullable|numeric|min:0',
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id' => 'required|string',
+            'new_employee_first_name' => 'required_if:employee_id,__new__|nullable|string|max:255',
+            'new_employee_last_name' => 'required_if:employee_id,__new__|nullable|string|max:255',
+            'new_employee_phone' => 'nullable|string|max:20',
+            'new_employee_role_title' => 'nullable|string|max:255',
+            'new_employee_hire_date' => 'nullable|date',
+            'new_employee_pay_type' => 'required_if:employee_id,__new__|nullable|in:salary,commission',
+            'new_employee_basic_salary' => 'required_if:new_employee_pay_type,salary|nullable|numeric|min:0',
+            'new_employee_commission_rate' => 'required_if:new_employee_pay_type,commission|nullable|numeric|min:0',
+            'new_employee_commission_target' => 'nullable|integer|min:1',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
         $validated['location'] = $validated['location'] ?? '';
 
-        $employee = Employee::findOrFail($validated['employee_id']);
-        if ($employee->outlet_id !== null) {
-            return back()->withInput()->with('error', "{$employee->full_name} is already assigned to another outlet.");
+        if ($validated['employee_id'] !== '__new__') {
+            $employee = Employee::findOrFail($validated['employee_id']);
+            if ($employee->outlet_id !== null) {
+                return back()->withInput()->with('error', "{$employee->full_name} is already assigned to another outlet.");
+            }
         }
 
-        return DB::transaction(function () use ($validated, $employee) {
+        return DB::transaction(function () use ($validated) {
+            $employee = $validated['employee_id'] === '__new__'
+                ? $this->createInlineEmployee($validated)
+                : Employee::findOrFail($validated['employee_id']);
+
             $outlet = Outlet::create([
                 'name' => $validated['name'],
                 'type' => $validated['type'],
@@ -75,6 +90,29 @@ class OutletController extends Controller
             return redirect()->route('outlets.index')
                 ->with('success', 'Outlet created successfully.');
         });
+    }
+
+    /**
+     * Lets the outlet form create a brand-new employee inline instead of forcing the
+     * user to leave the page, lose their in-progress outlet details, and come back.
+     */
+    protected function createInlineEmployee(array $data): Employee
+    {
+        $payType = $data['new_employee_pay_type'];
+
+        return Employee::create([
+            'employee_number' => ReferenceGenerator::generateEmployeeNumber(),
+            'first_name' => $data['new_employee_first_name'],
+            'last_name' => $data['new_employee_last_name'],
+            'phone' => $data['new_employee_phone'] ?? null,
+            'role_title' => $data['new_employee_role_title'] ?? null,
+            'hire_date' => $data['new_employee_hire_date'] ?? now()->toDateString(),
+            'pay_type' => $payType,
+            'basic_salary' => $payType === 'salary' ? ($data['new_employee_basic_salary'] ?? 0) : 0,
+            'commission_rate' => $payType === 'commission' ? ($data['new_employee_commission_rate'] ?? 0) : null,
+            'commission_target' => $payType === 'commission' ? ($data['new_employee_commission_target'] ?? 1250) : null,
+            'status' => 'active',
+        ]);
     }
 
     /**

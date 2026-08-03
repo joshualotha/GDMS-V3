@@ -28,16 +28,78 @@
 
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Assigned Employee *</label>
-            <select name="employee_id" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <select name="employee_id" id="employee-select" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                onchange="toggleNewEmployeeFields()">
                 <option value="">Select employee</option>
                 @foreach($availableEmployees as $emp)
                 <option value="{{ $emp->id }}" {{ old('employee_id') == $emp->id ? 'selected' : '' }}>{{ $emp->full_name }} ({{ $emp->employee_number }})</option>
                 @endforeach
+                <option value="__new__" {{ old('employee_id') == '__new__' ? 'selected' : '' }}>+ Add New Employee</option>
             </select>
             <p class="text-xs text-gray-500 mt-1">Every outlet needs exactly one employee. For a car outlet, this person is also the vehicle's driver.</p>
-            @if($availableEmployees->isEmpty())
-                <p class="text-xs text-red-600 mt-1">No unassigned active employees available. <a href="{{ route('employees.create') }}" class="underline">Add one first</a>.</p>
-            @endif
+        </div>
+
+        <div id="new-employee-fields" class="{{ old('employee_id') == '__new__' ? '' : 'hidden' }} bg-gray-50 rounded-lg p-4 mb-6">
+            <h4 class="font-medium text-gray-900 mb-3">New Employee Details</h4>
+            <div class="grid-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    <input type="text" name="new_employee_first_name" value="{{ old('new_employee_first_name') }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                    <input type="text" name="new_employee_last_name" value="{{ old('new_employee_last_name') }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div class="grid-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input type="text" name="new_employee_phone" value="{{ old('new_employee_phone') }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Role / Title</label>
+                    <input type="text" name="new_employee_role_title" value="{{ old('new_employee_role_title') }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div class="grid-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Hire Date</label>
+                    <input type="date" name="new_employee_hire_date" value="{{ old('new_employee_hire_date', date('Y-m-d')) }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Pay Type</label>
+                    <select name="new_employee_pay_type" id="new-employee-pay-type"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        onchange="toggleNewEmployeePayFields()">
+                        <option value="salary" {{ old('new_employee_pay_type') == 'salary' ? 'selected' : '' }}>Salary</option>
+                        <option value="commission" {{ old('new_employee_pay_type') == 'commission' ? 'selected' : '' }}>Commission</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2 gap-4 mt-4">
+                <div id="new-employee-salary-field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Basic Salary</label>
+                    <input type="number" name="new_employee_basic_salary" value="{{ old('new_employee_basic_salary') }}" step="0.01" min="0"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div id="new-employee-commission-fields" class="hidden grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Commission Rate</label>
+                        <input type="number" name="new_employee_commission_rate" value="{{ old('new_employee_commission_rate') }}" step="0.01" min="0"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Commission Target</label>
+                        <input type="number" name="new_employee_commission_target" value="{{ old('new_employee_commission_target', 1250) }}" min="1"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="car-fields" class="{{ old('type') != 'car' ? 'hidden' : '' }}">
@@ -141,5 +203,22 @@ function toggleNewAssetFields() {
     fields.classList.toggle('hidden', linkingToExisting);
     rateInput.required = !linkingToExisting;
 }
+
+function toggleNewEmployeeFields() {
+    var isNew = document.getElementById('employee-select').value === '__new__';
+    document.getElementById('new-employee-fields').classList.toggle('hidden', !isNew);
+    if (isNew) {
+        toggleNewEmployeePayFields();
+    }
+}
+
+function toggleNewEmployeePayFields() {
+    var isCommission = document.getElementById('new-employee-pay-type').value === 'commission';
+    document.getElementById('new-employee-salary-field').classList.toggle('hidden', isCommission);
+    document.getElementById('new-employee-commission-fields').classList.toggle('hidden', !isCommission);
+}
+document.addEventListener('DOMContentLoaded', function () {
+    toggleNewEmployeeFields();
+});
 </script>
 @endsection
