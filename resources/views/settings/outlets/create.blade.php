@@ -57,19 +57,6 @@
                 </div>
 
                 <div id="new-asset-fields">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Asset Category *</label>
-                        <select name="asset_category_id" id="asset-category"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                            <option value="">Select category</option>
-                            @foreach($depreciableCategories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }} ({{ $category->default_depreciation_rate }}% / yr)</option>
-                            @endforeach
-                        </select>
-                        @if($depreciableCategories->isEmpty())
-                            <p class="text-xs text-red-600 mt-1">No depreciable asset categories exist yet. <a href="{{ route('asset-categories.index') }}" class="underline">Create one first</a>.</p>
-                        @endif
-                    </div>
                     <div class="grid-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Plate Number</label>
@@ -83,6 +70,12 @@
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                 placeholder="0">
                         </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Depreciation Rate (% / year)</label>
+                        <input type="number" name="depreciation_rate" id="depreciation-rate" value="{{ old('depreciation_rate', 20) }}" step="0.01" min="0" max="100"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <p class="text-xs text-gray-500 mt-1">Annual reducing-balance rate for this specific vehicle. Defaults to 20% &mdash; adjust as needed.</p>
                     </div>
                 </div>
             </div>
@@ -134,7 +127,7 @@ function toggleCarFields(type) {
         document.getElementById('car-fields').classList.add('hidden');
         document.getElementById('physical-fields').classList.remove('hidden');
         locationInput.required = true;
-        document.getElementById('asset-category').required = false;
+        document.getElementById('depreciation-rate').required = false;
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
@@ -144,9 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function toggleNewAssetFields() {
     var linkingToExisting = document.getElementById('asset-select').value !== '';
     var fields = document.getElementById('new-asset-fields');
-    var categorySelect = document.getElementById('asset-category');
+    var rateInput = document.getElementById('depreciation-rate');
     fields.classList.toggle('hidden', linkingToExisting);
-    categorySelect.required = !linkingToExisting;
+    rateInput.required = !linkingToExisting;
 }
 </script>
 @endsection

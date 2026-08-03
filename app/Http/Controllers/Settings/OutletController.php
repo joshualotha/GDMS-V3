@@ -28,10 +28,9 @@ class OutletController extends Controller
             ->whereDoesntHave('outletAsCar')
             ->orderBy('name')
             ->get();
-        $depreciableCategories = AssetCategory::where('is_depreciable', true)->where('is_active', true)->orderBy('name')->get();
         $availableEmployees = Employee::where('status', 'active')->whereNull('outlet_id')->orderBy('first_name')->get();
 
-        return view('settings.outlets.create', compact('availableAssets', 'depreciableCategories', 'availableEmployees'));
+        return view('settings.outlets.create', compact('availableAssets', 'availableEmployees'));
     }
 
     public function store(Request $request)
@@ -44,7 +43,7 @@ class OutletController extends Controller
             'is_active' => 'boolean',
             'opened_date' => 'required|date',
             'asset_id' => 'nullable|exists:assets,id',
-            'asset_category_id' => 'required_if:type,car|nullable|exists:asset_categories,id',
+            'depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'purchase_cost' => 'nullable|numeric|min:0',
             'employee_id' => 'required|exists:employees,id',
         ]);
@@ -81,6 +80,10 @@ class OutletController extends Controller
     /**
      * Either link the car-outlet to an existing depreciable asset, or create a new one for it.
      * The outlet's assigned employee doubles as the vehicle's driver.
+     *
+     * Depreciation rate is entered directly per vehicle rather than picked from a category —
+     * the category still exists underneath (assets require one), but it's a single
+     * auto-provisioned "Vehicles" bucket the user never has to see or manage.
      */
     protected function resolveCarAsset(Outlet $outlet, array $data): CompanyAsset
     {
@@ -94,8 +97,10 @@ class OutletController extends Controller
             return $asset;
         }
 
-        $category = AssetCategory::findOrFail($data['asset_category_id']);
+        $category = $this->resolveVehicleCategory();
+
         $purchaseCost = $data['purchase_cost'] ?? 0;
+        $depreciationRate = $data['depreciation_rate'] ?? $category->default_depreciation_rate;
 
         return CompanyAsset::create([
             'asset_number' => ReferenceGenerator::generateAssetNumber(),
@@ -106,10 +111,38 @@ class OutletController extends Controller
             'purchase_cost' => $purchaseCost,
             'accumulated_depreciation' => 0,
             'current_book_value' => $purchaseCost,
-            'depreciation_rate' => $category->default_depreciation_rate,
+            'depreciation_rate' => $depreciationRate,
             'status' => 'active',
             'assigned_to_outlet' => $outlet->id,
             'assigned_to_employee' => $data['employee_id'],
+        ]);
+    }
+
+    /**
+     * Reuse an existing depreciable "Vehicles" category if one is already set up right;
+     * otherwise create one. Never silently reuses a same-named category that isn't
+     * actually marked depreciable — that would attach new vehicles to something that
+     * never depreciates, and the business may have their own non-depreciable "Vehicles"
+     * bucket for unrelated reasons.
+     */
+    protected function resolveVehicleCategory(): AssetCategory
+    {
+        $category = AssetCategory::whereIn('name', ['Vehicles', 'Vehicles (Depreciable)'])
+            ->where('is_depreciable', true)
+            ->orderBy('id')
+            ->first();
+
+        if ($category) {
+            return $category;
+        }
+
+        $name = AssetCategory::where('name', 'Vehicles')->exists() ? 'Vehicles (Depreciable)' : 'Vehicles';
+
+        return AssetCategory::create([
+            'name' => $name,
+            'is_depreciable' => true,
+            'default_depreciation_rate' => 20,
+            'is_active' => true,
         ]);
     }
 
